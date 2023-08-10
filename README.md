@@ -8,3 +8,10 @@ Non-Sound Speech Detection (NSSD) Team for UB Voice.
 3. `python -m pip install -r requirements.txt` (while in virtual env)
     1. `python -m pip freeze > requirements.txt` to add reqs to requirements.txt 
 4. `deactivate` to leave virtual environment
+
+
+
+
+
+## Resources:
+1. https://github.com/YuanGongND/whisper-at
