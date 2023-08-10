@@ -1,7 +1,7 @@
 import whisper_at as whisper
 
 audio_tagging_time_resolution = 10
-model = whisper.load_model("large-v1")
+model = whisper.load_model("base.en")
 result = model.transcribe(
     "datasets/test.wav", at_time_res=audio_tagging_time_resolution
 )
