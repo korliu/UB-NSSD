@@ -1,17 +1,14 @@
 # UB-NSSD
 Non-Sound Speech Detection (NSSD) Team for UB Voice.
 
-## Setup
-### Start Virtual Environment:
-1. `python -m venv .venv`
-2. `./.venv/Scripts/activate` (based on your machine, but this command worked for me)
-3. `python -m pip install -r requirements.txt` (while in virtual env)
-    1. `python -m pip freeze > requirements.txt` to add reqs to requirements.txt 
-4. `deactivate` to leave virtual environment
+## Development Environment
+### Setup
+1. `python -m venv .venv` to create virtual environment
+2. [to activate virutal environment](https://docs.python.org/3/library/venv.html#how-venvs-work)
+3. [install `ffmpeg`](https://ffmpeg.org/download.html)
+4. `pip install .` to install dependencies
+5. `pip install --no-deps whisper-at` [(Windows/Mac only)](https://github.com/YuanGongND/whisper-at#step-1-install-whisper-at)
+6. `deactivate` to leave virtual environment
 
-
-
-
-
-## Resources:
-1. https://github.com/YuanGongND/whisper-at
+## Resources
+* [`whisper-at`](https://github.com/YuanGongND/whisper-at)
