@@ -2,7 +2,7 @@
 name = "ub_nssd"
 version = "0.1.0"
 description = "Non-Sound Speech Detection (NSSD) Team for UB Voice."
-authors = [{ name = "ok-nick", email = "nick.libraries@gmail.com" }]
+authors = [{ name = "ok-nick, korliu", email = "nick.libraries@gmail.com, koreyliu1221@gmail.com" }]
 dependencies = [
   'numba',
   'numpy',
