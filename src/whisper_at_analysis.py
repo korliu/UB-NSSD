@@ -7,7 +7,7 @@ import json
 ## IDEA:
 '''
 1. run whisper-at on each event, see if it has the correct audio tag
-    - since whisper-at does not have swallowing but does have chewing and biting
+    - since whisper-at does not have swallowing but does have chewing and biting, focus on chewing and biting and see what it outputs for swallowing/undefined events
     - Related audio tags for food-related stuff?:
         labels can be found by:
             -`whisper_at.print_label_name()` or 
@@ -17,8 +17,9 @@ import json
         56	/m/0939n_	Gargling
         57	/m/01g90h	Stomach rumble
         58	/m/03q5_w	Burping, eructation
-    2. compare with json file, events with timestamps?
-    3. count correct audio tags
+2. (maybe) run whisper-at on audio split of each from annotated data?
+3. compare with annotated_data event json files
+    - compare event labels?
 '''
 ##
 
