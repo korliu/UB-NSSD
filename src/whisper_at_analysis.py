@@ -21,9 +21,10 @@ import json
 3. compare with annotated_data event json files
     - compare event labels?
 '''
-##
+## 
 
-DATASET = os.path.join("datasets", "Food Intake Dataset")
+# ".." because we are in src folder
+DATASET = os.path.join("..","datasets", "Food Intake Dataset")
 
 MODEL_TYPE = "medium"
 
