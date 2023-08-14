@@ -8,6 +8,7 @@ dependencies = [
   'numpy',
   'torch',
   'torchaudio',
+  'librosa',
   'tqdm',
   'more-itertools',
   'tiktoken == 0.3.3',
