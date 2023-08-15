@@ -161,3 +161,4 @@ cython_debug/
 
 datasets/*
 !datasets/README.md
+meeting_notes/*
