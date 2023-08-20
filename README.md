@@ -1,8 +1,8 @@
 # UB-NSSD
 Non-Sound Speech Detection (NSSD) Team for UB Voice.
 
-## Development Environment
-### Setup
+## Setup
+### Development Environment
 1. `python -m venv .venv` to create virtual environment
 2. [Activate virtual environment](https://docs.python.org/3/library/venv.html#how-venvs-work)
 3. [Install `ffmpeg`](https://ffmpeg.org/download.html)
