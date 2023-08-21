@@ -10,3 +10,7 @@
 ### Food Intake Dataset
 - [Download](https://www.dropbox.com/sh/t9guqqte7xbqqcz/AABZB1svTYCHa9DzxsuYSLtna?dl=0)
 - [Download cleaned](https://drive.google.com/file/d/1v04UxNYPvdfG6rPZcZEuZD1sATYuMnTJ/view?usp=drive_link)
+
+### Eating Sound Collection (from Kaggle)
+- [Download] (https://www.kaggle.com/datasets/mashijie/eating-sound-collection)
+- 44.1k Hz Sample Rate it seems
