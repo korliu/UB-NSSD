@@ -49,23 +49,28 @@ def get_audio_from_yt(youtube_link: str, save_path: str, return_tensor: bool = T
         filename_prefix=None,
     )
 
+    # use ffmpeg to convert mp4 to wav
     ffmpeg_command_args = ["ffmpeg", "-i" , download_path, "-ac", "1", "-y", "-f", "wav", save_path]
     
     completed_process = subprocess.run(ffmpeg_command_args,capture_output=True)
     
+    # if error occurred
     if completed_process.returncode != 0:
         cmd = " ".join(completed_process.args)
         ffmpeg_stderr = completed_process.stderr.splitlines()
 
+        # last msg seems like the main error msg
         ffmpeg_error_msg = ffmpeg_stderr[-1]
 
         raise Exception(f"error with command: \n\t>>{cmd}\n ffmpeg error message: {ffmpeg_error_msg}")
     
+    # remove the temporary file that was created
     os.remove(temp_download_path)
 
     output_dict = {"audio_path": save_path, "audio_tensor": None}
     output_dict['audio_path'] = save_path
-
+    
+    # if return_tensor == true, will use torchaudio.load to read from the audio_path and return the audio tensor
     if return_tensor:
         audio_waveform, audio_sr = torchaudio.load(filepath=save_path)
 
