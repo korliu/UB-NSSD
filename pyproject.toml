@@ -2,7 +2,10 @@
 name = "ub_nssd"
 version = "0.1.0"
 description = "Non-Sound Speech Detection (NSSD) Team for UB Voice."
-authors = [{name = "ok-nick", email = "nick.libraries@gmail.com"}, {name="korliu", email="koreyliu1221@gmail.com"}]
+authors = [
+  { name = "ok-nick", email = "nick.libraries@gmail.com" },
+  { name = "korliu", email = "koreyliu1221@gmail.com" },
+]
 dependencies = [
   'numba',
   'numpy',
@@ -13,8 +16,9 @@ dependencies = [
   'more-itertools',
   'tiktoken == 0.3.3',
   'pandas',
+  'pytube',
   'whisper-at == 0.4.0; sys_platform == "Linux"',
-  'matplotlib'
+  'matplotlib',
 ]
 
 [tool.pyright]
