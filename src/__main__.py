@@ -1,18 +1,25 @@
+import infer
+import utils
 import whisper_at as whisper
 
-audio_tagging_time_resolution = 10
-model = whisper.load_model("base.en")
-result = model.transcribe(
-    "datasets/test.wav", at_time_res=audio_tagging_time_resolution
+# TODO: make path more foolproof
+utils.get_audio_from_yt(
+    "https://www.youtube.com/watch?v=LRvwtlkV-IQ", "datasets/yt.wav"
 )
-# ASR Results
-print(result["text"])
-# Audio Tagging Results
-audio_tag_result = whisper.parse_at_label(
-    result,
+
+model = whisper.load_model("base.en")
+
+transcription = model.transcribe(
+    "datasets/yt.wav",
+    at_time_res=0.4,  # min time res
+    # word_timestamps=True, # TODO: error
+)
+tags = whisper.parse_at_label(
+    transcription,
     language="follow_asr",
     top_k=5,
     p_threshold=-1,
     include_class_list=list(range(527)),
 )
-print(audio_tag_result)
+
+print(infer.combine(transcription, tags))

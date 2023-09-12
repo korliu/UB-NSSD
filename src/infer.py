@@ -7,6 +7,7 @@ def combine(transcription, tags):
             time = info["time"]
 
             segments = transcription["segments"]
+            # TODO: could cache a lot of this rather than iterating the whole thing
             for c, n in zip(segments[:-1], segments[1:]):
                 if c["start"] <= time["start"] <= c["end"]:
                     # TODO: what if the audio tag spans multiple words, need to rework

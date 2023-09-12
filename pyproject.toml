@@ -27,5 +27,6 @@ typeCheckingMode = "off"
 [tool.ruff]
 fixable = ["ALL"]
 select = ["ALL"]
+ignore = ["ERA001"]
 
 [tool.black]
