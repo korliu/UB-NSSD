@@ -14,3 +14,7 @@
 ### Eating Sound Collection (from Kaggle)
 - [Download] (https://www.kaggle.com/datasets/mashijie/eating-sound-collection)
 - 44.1k Hz Sample Rate it seems
+
+### Google AudioSet
+- [Download Documentation](http://research.google.com/audioset/download.html)
+- To download, run ./google_audioset/download_audioset_script.py
