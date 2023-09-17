@@ -1,20 +1,78 @@
-def combine(transcription, tags):
-    result = []
-    for info in tags:
-        if len(info["audio tags"]) > 0:
-            # assuming the first tag is most probable
-            tag = info["audio tags"][0][0]
-            time = info["time"]
+from time import sleep
 
-            segments = transcription["segments"]
-            # TODO: could cache a lot of this rather than iterating the whole thing
-            for c, n in zip(segments[:-1], segments[1:]):
-                if c["start"] <= time["start"] <= c["end"]:
-                    # TODO: what if the audio tag spans multiple words, need to rework
-                    if n["start"] <= time["end"] <= n["end"]:
-                        # in this case, the audio tag has to go between both labels
-                        # TODO: add more info
-                        result.append(c["word"])
-                        result.append(tag)
-                        result.append(n["word"])
+
+def combine(transcription, audio_tags):
+    return _combine(
+        words(transcription),
+        tags(audio_tags),
+    )
+
+
+def _combine(words, tags):
+    # little preallocation
+    # result = [None] * (len(words) + len(tags))
+    result = []
+
+    # some variation of a merge sort
+    w, t = 0, 0
+    while w < len(words) and t < len(tags):
+        word = words[w]
+        tag = tags[t]
+
+        # TODO: for testing, this impl still needs work
+        print(word, tag)
+        print()
+        sleep(0.1)
+
+        if tag["start"] < word["start"]:
+            # if the tag begins before the word
+            result.append(tag)
+            result.append(word)
+
+            if tag["end"] <= word["end"]:
+                # if the tag ends during the word
+                t += 1
+            w += 1
+        else:
+            # if the tag begins during the word
+            result.append(word)
+            result.append(tag)
+
+            if tag["end"] <= word["end"]:
+                # if the tag ends during the word
+                t += 1
+            w += 1
+
     return result
+
+
+def tags(audio_tags):
+    tags = []
+    for info in audio_tags:
+        found = info["audio tags"]
+        # if there is an audio tag for this segment
+        if len(found) > 0:
+            tags.append(
+                {
+                    # assume the first audio tag is the most probable
+                    "tag": found[0][0],
+                    "start": info["time"]["start"],
+                    "end": info["time"]["end"],
+                }
+            )
+
+    return tags
+
+
+def words(transcription):
+    words = []
+    for segment in transcription["segments"]:
+        for info in segment["words"]:
+            words.append(
+                {
+                    "word": info["word"],
+                    "start": info["start"],
+                    "end": info["end"],
+                }
+            )
+    return words
