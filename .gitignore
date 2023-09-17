@@ -4,4 +4,5 @@ __pycache__/
 datasets/*
 !datasets/README.md
 !datasets/google_audioset/
+datasets/google_audioset/audioset
 meeting_notes/*
