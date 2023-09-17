@@ -1,7 +1,6 @@
 {
-
     "dataset_csv_download_links": {
-        "evaulation": "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/eval_segments.csv",
+        "evaluation": "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/eval_segments.csv",
         "balanced_train": "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/balanced_train_segments.csv",
         "unbalanced_train": "http://storage.googleapis.com/us_audioset/youtube_corpus/v1/csv/unbalanced_train_segments.csv"
     },
