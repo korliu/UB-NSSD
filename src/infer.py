@@ -19,12 +19,16 @@ def _combine(words, tags):
         word = words[w]
         tag = tags[t]
 
-        # TODO: for testing, this impl still needs work
-        print(word, tag)
-        print()
-        sleep(0.1)
+        # NOTE: for testing
+        # print(word, tag)
+        # print()
+        # sleep(0.1)
 
-        if tag["start"] < word["start"]:
+        if tag["start"] >= word["start"] and tag["end"] <= word["end"]:
+            # tag is within the duration of a word
+            # skip for now
+            t += 1
+        elif tag["start"] < word["start"]:
             # if the tag begins before the word
             result.append(tag)
             result.append(word)
@@ -33,14 +37,13 @@ def _combine(words, tags):
                 # if the tag ends during the word
                 t += 1
             w += 1
-        else:
-            # if the tag begins during the word
+        elif tag["start"] > word["end"]:
+            # if the tag starts after the word
             result.append(word)
-            result.append(tag)
-
-            if tag["end"] <= word["end"]:
-                # if the tag ends during the word
-                t += 1
+            w += 1
+        elif tag["start"] <= word["end"]:
+            # if the tag starts during the word
+            result.append(word)
             w += 1
 
     return result
