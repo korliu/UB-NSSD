@@ -6,8 +6,9 @@ import torch
 import os
 import subprocess
 import math
+import librosa
 
-def get_yt_link(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
+def get_yt_url(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
 
     '''
     Gets the corresponding youtube video segment
@@ -34,8 +35,7 @@ def get_yt_link(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
     
     return youtube_url
 
-print(get_yt_link("kTvQQwSTU1A",190.0, 205.0))
-def get_audio_from_yt(youtube_link: str, save_path: str, return_tensor: bool = True) -> dict:
+def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0, end_second: float=None) -> dict:
     #  https://pytube.io/en/latest/
     '''
     Uses pytube and ffmpeg to download audio from youtube_link and download it as a `.wav` file
@@ -62,6 +62,8 @@ def get_audio_from_yt(youtube_link: str, save_path: str, return_tensor: bool = T
         only_audio=True,
         adaptive=True)
     # it seems these yt streams have codecs mp4 and opus
+
+    print(filtered_stream)
     
     audio_stream = filtered_stream.get_audio_only()
     # highest bitrate of mp4 file
@@ -96,13 +98,29 @@ def get_audio_from_yt(youtube_link: str, save_path: str, return_tensor: bool = T
     # remove the temporary file that was created
     os.remove(temp_download_path)
 
-    output_dict = {"audio_path": save_path, "audio_tensor": None}
-    output_dict['audio_path'] = save_path
     
     # if return_tensor == true, will use torchaudio.load to read from the audio_path and return the audio tensor
-    if return_tensor:
-        audio_waveform, audio_sr = torchaudio.load(filepath=save_path)
+    download_sr = librosa.get_samplerate(save_path)
 
-        output_dict['audio_tensor'] = (audio_waveform,audio_sr)
+    audio_waveform, audio_sr = torch.Tensor(), 0
+
+    if end_second != None:
+        audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
+                                               frame_offset=int(start_second*download_sr))
+    else:
+        duration = end_second-start_second
+        if duration < 0:
+            raise Exception("end_second can not be less than the start_second")
+        
+        audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
+                                               frame_offset=int(start_second*download_sr),
+                                               num_frames=int(duration*download_sr))
+    
+    torchaudio.save(save_path, audio_waveform, sample_rate=audio_sr)
+
+    output_dict = {"audio_path": "", "audio_tensor": None}
+    
+    output_dict['audio_path'] = save_path
+    output_dict['audio_tensor'] = (audio_waveform,audio_sr)
 
     return output_dict
