@@ -5,6 +5,7 @@ import pytube
 import torch
 import os
 import subprocess
+import math
 
 def get_yt_link(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
 
@@ -23,17 +24,17 @@ def get_yt_link(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
     yt_link_prefix = "https://www.youtube.com/embed"
 
     get_start_sec = int(start_sec)
-    get_end_sec = int(end_sec) if end_sec else None
+    get_end_sec = int(math.ceil(end_sec)) if end_sec else None
 
     youtube_url += f"{yt_link_prefix}/{yt_id}"
     youtube_url += f"?start={get_start_sec}"
 
     if get_end_sec != None:
-        youtube_url += f"&end={end_sec}"
+        youtube_url += f"&end={get_end_sec}"
     
     return youtube_url
 
-
+print(get_yt_link("kTvQQwSTU1A",190.0, 205.0))
 def get_audio_from_yt(youtube_link: str, save_path: str, return_tensor: bool = True) -> dict:
     #  https://pytube.io/en/latest/
     '''
