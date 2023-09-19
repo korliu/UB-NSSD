@@ -16,9 +16,7 @@ transcription = model.transcribe(
 )
 tags = whisper.parse_at_label(
     transcription,
-    language="follow_asr",
-    top_k=5,
-    p_threshold=-1,
+    language="en",
     include_class_list=list(range(527)),
 )
 
