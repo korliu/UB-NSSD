@@ -42,7 +42,8 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0
 
     - `youtube_link`: link of the youtube video
     - `save_path`: path where you want your audio to be saved
-    - `return_tensor`: include output of the audio tensor from `torchaudio.load()` in output dictionary
+    - `start_second`: start second of youtube segment wanted (default: 0)
+    - `end_second`: end second of youtube segment wanted (default: None)
 
     Returns: dict of keys 'audio_path' and 'audio_tensor'
     '''
