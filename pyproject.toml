@@ -19,7 +19,8 @@ dependencies = [
   'pytube',
   'whisper-at == 0.4.0; sys_platform == "Linux"',
   'matplotlib',
-  'requests'
+  'requests',
+  'torcheval'
 ]
 
 [tool.pyright]
