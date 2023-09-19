@@ -64,8 +64,10 @@ def get_label2name_dict(labels_csv: str ) -> dict:
     
     return (id2name, id2mid, mid2id, name2id)
         
+if not os.path.exists(os.path.join(OUTPUT_FOLDER,"audioset_labels.csv")):
+    _ = download_labels_csv(labels_csv_link)
+    
 
-# _ = download_label_csvs(labels_csv_link)
 id2name, id2mid, mid2id, name2id = get_label2name_dict(os.path.join(OUTPUT_FOLDER,"audioset_labels.csv"))
 
 # test_link = dataset_links['evaluation']
