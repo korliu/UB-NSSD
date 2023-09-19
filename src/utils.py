@@ -38,7 +38,9 @@ def get_yt_url(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
 def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0, end_second: float=None) -> dict:
     #  https://pytube.io/en/latest/
     '''
-    Uses pytube and ffmpeg to download audio from youtube_link and download it as a `.wav` file
+    Uses pytube and ffmpeg to download audio from youtube_link and download it as a `.wav` file, can define start and seconds for a youtube segment.
+
+    Currently uses torchaudio to splice but will change to use ffmpeg to splice
 
     - `youtube_link`: link of the youtube video
     - `save_path`: path where you want your audio to be saved
