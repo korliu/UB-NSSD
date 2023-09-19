@@ -24,27 +24,24 @@ def _combine(words, tags):
         # print()
         # sleep(0.1)
 
-        if tag["start"] >= word["start"] and tag["end"] <= word["end"]:
-            # tag is within the duration of a word
-            # skip for now
-            t += 1
-        elif tag["start"] < word["start"]:
-            # if the tag begins before the word
+        if tag["start"] < word["start"]:
             result.append(tag)
+            t += 1
+        else:
             result.append(word)
+            w += 1
 
-            if tag["end"] <= word["end"]:
-                # if the tag ends during the word
-                t += 1
-            w += 1
-        elif tag["start"] > word["end"]:
-            # if the tag starts after the word
-            result.append(word)
-            w += 1
-        elif tag["start"] <= word["end"]:
-            # if the tag starts during the word
-            result.append(word)
-            w += 1
+    for i in range(w, len(words)):
+        result.append(words[i])
+
+    for i in range(t, len(tags)):
+        result.append(tags[i])
+
+    # TODO: temp, super inefficient impl to dedup
+    for i in range(len(result) - 1, 1, -1):
+        if "tag" in result[i - 1] and "tag" in result[i]:
+            if result[i - 1]["tag"] == result[i]["tag"]:
+                result.pop(i)
 
     return result
 
