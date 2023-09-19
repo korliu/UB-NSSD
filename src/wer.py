@@ -16,8 +16,10 @@ annotated = json.load(open("datasets/manually_annotated.json"))
 for i, a in enumerate(annotated):
     model = whisper.load_model("base.en")
 
+    start, end = a['start_second'], a['end_second']
+
     audio_path = f"datasets/{i}.wav"
-    utils.get_audio_from_yt(a["yt_link"], audio_path)
+    utils.get_audio_from_yt(a["yt_link"], audio_path, start, end)
 
     transcription = model.transcribe(
         audio_path,
@@ -43,7 +45,7 @@ for i, a in enumerate(annotated):
     predicted = " ".join(strings)
     wer = compute_wer(expected, predicted)
 
-    # print(expected)
-    # print(predicted)
-    print(i, wer)
+    print(f"expected: {expected}")
+    print(f"predicted: {predicted}")
+    print(f"{i}.wav", wer)
     print()
