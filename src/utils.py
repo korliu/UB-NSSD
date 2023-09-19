@@ -63,7 +63,6 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0
         adaptive=True)
     # it seems these yt streams have codecs mp4 and opus
 
-    print(filtered_stream)
     
     audio_stream = filtered_stream.get_audio_only()
     # highest bitrate of mp4 file
@@ -104,10 +103,7 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0
 
     audio_waveform, audio_sr = torch.Tensor(), 0
 
-    if end_second != None:
-        audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
-                                               frame_offset=int(start_second*download_sr))
-    else:
+    if end_second:
         duration = end_second-start_second
         if duration < 0:
             raise Exception("end_second can not be less than the start_second")
@@ -115,11 +111,15 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0
         audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
                                                frame_offset=int(start_second*download_sr),
                                                num_frames=int(duration*download_sr))
+    else:
+        audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
+                                               frame_offset=int(start_second*download_sr))
+        
     
     torchaudio.save(save_path, audio_waveform, sample_rate=audio_sr)
 
     output_dict = {"audio_path": "", "audio_tensor": None}
-    
+
     output_dict['audio_path'] = save_path
     output_dict['audio_tensor'] = (audio_waveform,audio_sr)
 
