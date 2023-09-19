@@ -6,14 +6,42 @@ import torch
 import os
 import subprocess
 
+def get_yt_link(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
+
+    '''
+    Gets the corresponding youtube video segment
+
+    - `yt_id`: youtube video id
+    - `start_sec`: start second of the segment
+    - `end_sec`: end second of the segment
+
+    Returns youtube url with expected format: `https://www.youtube.com/embed/{yd_id}?start={start_sec}&end={end_sec}`
+    '''
+
+    youtube_url = ""
+
+    yt_link_prefix = "https://www.youtube.com/embed"
+
+    get_start_sec = int(start_sec)
+    get_end_sec = int(end_sec) if end_sec else None
+
+    youtube_url += f"{yt_link_prefix}/{yt_id}"
+    youtube_url += f"?start={get_start_sec}"
+
+    if get_end_sec != None:
+        youtube_url += f"&end={end_sec}"
+    
+    return youtube_url
+
+
 def get_audio_from_yt(youtube_link: str, save_path: str, return_tensor: bool = True) -> dict:
     #  https://pytube.io/en/latest/
     '''
     Uses pytube and ffmpeg to download audio from youtube_link and download it as a `.wav` file
 
-    youtube_link: link of the youtube video
-    save_path: path where you want your audio to be saved
-    return_tensor: include output of the audio tensor from `torchaudio.load()` in output dictionary
+    - `youtube_link`: link of the youtube video
+    - `save_path`: path where you want your audio to be saved
+    - `return_tensor`: include output of the audio tensor from `torchaudio.load()` in output dictionary
 
     Returns: dict of keys 'audio_path' and 'audio_tensor'
     '''
