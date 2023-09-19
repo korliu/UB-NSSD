@@ -20,15 +20,15 @@ dependencies = [
   'whisper-at == 0.4.0; sys_platform == "Linux"',
   'matplotlib',
   'requests',
-  'torcheval'
+  'torcheval',
 ]
 
 [tool.pyright]
-typeCheckingMode = "off"
+# typeCheckingMode = "basic"
 
 [tool.ruff]
-fixable = ["ALL"]
-select = ["ALL"]
-ignore = ["ERA001"]
+# fixable = ["ALL"]
+# select = ["ALL"]
+# ignore = ["ERA001"]
 
 [tool.black]
