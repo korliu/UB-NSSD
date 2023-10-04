@@ -17,10 +17,12 @@ dependencies = [
   'tiktoken == 0.3.3',
   'pandas',
   'pytube',
-  'whisper-at == 0.4.0; sys_platform == "Linux"',
   'matplotlib',
   'requests',
   'torcheval',
+  'tensorflow',
+  'tensorflow_hub',
+  'tensorflow_io'
 ]
 
 [tool.pyright]

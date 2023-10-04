@@ -15,3 +15,4 @@ Non-Sound Speech Detection (NSSD) Team for UB Voice.
 
 ## Resources
 * [`whisper-at`](https://github.com/YuanGongND/whisper-at)
+* [`YAMNet`](https://tfhub.dev/google/yamnet/1)
