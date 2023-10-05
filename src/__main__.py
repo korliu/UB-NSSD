@@ -12,3 +12,18 @@ import tensorflow_io as tfio
 # )
 
 # https://www.tensorflow.org/tutorials/audio/transfer_learning_audio
+
+YAMNET_MODEL_LINK  = "https://tfhub.dev/google/yamnet/1"
+
+yamnet_model = tf_hub.load(YAMNET_MODEL_LINK)
+
+test_path = os.path.join("datasets","test.wav")
+# test_wav_file = tf.keras.utils.get_file(test_path)
+
+# Load the model.
+model = tf_hub.load(YAMNET_MODEL_LINK)
+
+# Input: 3 seconds of silence as mono 16 kHz waveform samples.
+# waveform = np.zeros(3 * 16000, dtype=np.float32)
+
+waveform, sr = torchaudio.load(filepath=test_path)
