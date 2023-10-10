@@ -38,7 +38,7 @@ def download_labels_csv(link: str, save_path: str="audioset_labels.csv") -> None
     return
 
 
-def get_label2name_dict(labels_csv: str ) -> dict:
+def get_label2name_dict(labels_csv: str) -> dict:
     
     id2name = dict()
     id2mid = dict()
@@ -78,7 +78,7 @@ OUTPUT_DATA_FOLDER = os.path.join(OUTPUT_FOLDER,"audioset_data")
 if not os.path.exists(OUTPUT_DATA_FOLDER):
     os.mkdir(OUTPUT_DATA_FOLDER)
 
-id_labels_filter = set(["54","55"])
+eating_id_labels = {"54": "chewing", "55": "biting"}
 # ids 54 and 55 are chewing and biting
 
 print(dataset_links)
@@ -92,11 +92,17 @@ for k,v in dataset_links.items():
     
     with open(os.path.join(OUTPUT_DATA_FOLDER,f"{dataset_name}.csv"), 'w+',newline='') as f:
 
-
         csv_writer = csv.writer(f)
 
+        dataset = dataset_request.text.splitlines()
+        # rough amount of rows (not exactly n_data, closer to n_data-3) done to collect a rough amount of data with an other tag.
+        n_data = len(dataset)
+        max_num_other_label = n_data//1000
+        n_other = 0
+        other_data = []
+        n_eating = 0
 
-        csv_reader = csv.reader(dataset_request.text.splitlines(),skipinitialspace=True)
+        csv_reader = csv.reader(dataset,skipinitialspace=True)
 
         metadata_text = next(csv_reader) # unimportant information
         metadata_text = next(csv_reader)
@@ -105,26 +111,79 @@ for k,v in dataset_links.items():
         header[0] = "YTID"
         csv_writer.writerow(header)
 
-
         for row in csv_reader:
             # print(rf'{row}')
             yt_id, start_sec, end_sec, _ = row
 
             positive_mid_labels = row[3:][0].split(',')
+            for i in range(len(positive_mid_labels)):
+                mid_label = positive_mid_labels[i]
 
-            eating_video = False
+                positive_mid_labels[i] 
 
-            for mid_label in positive_mid_labels:
-                if mid2id[mid_label] in id_labels_filter:
-                    eating_video=True
+            named_labels = list(map(lambda x: id2name[mid2id[x]], positive_mid_labels))
+            is_eating_video = False
+
+            data_row = [yt_id,start_sec,end_sec]
+            for i, label in enumerate(named_labels):
+                if name2id[label] in eating_id_labels:
+                    is_eating_video=True
+                    n_eating += 1
+                    data_row.append(eating_id_labels[name2id[label]])
                     break
 
-            if eating_video:
-                csv_writer.writerow(row)
+            
+            if is_eating_video:
+                csv_writer.writerow(data_row)
+
+            elif n_other <= max_num_other_label:
+                n_other += 1
+                data_row.append("other")
+                other_data.append(data_row)
+        
+        # roughly 10% of data will be other labels
+        for other in other_data[:n_eating//10]:
+            csv_writer.writerow(other)
+        
             
             
 
 
+# add manually_annotated
+MANUAL_TRAIN_DATA = os.path.join("datasets","manual_train_data.csv")
+MANUAL_EVAL_DATA = os.path.join("datasets","manual_eval_data.csv")
 
 
+
+TRAIN_DATA = os.path.join(OUTPUT_DATA_FOLDER,"balanced_train.csv")
+EVAL_DATA = os.path.join(OUTPUT_DATA_FOLDER,"evaluation.csv")
+
+
+datasets = [
+    (TRAIN_DATA, MANUAL_TRAIN_DATA), (EVAL_DATA, MANUAL_EVAL_DATA)
+]
+# dataset,manual
+
+for i, data in enumerate(datasets):
+
+    audioset_data_path, manual_data_path = data
+
+    with open(audioset_data_path,'a') as audioset_data, open(manual_data_path,'r') as manual_data:
+        
+        csv_writer = csv.writer(audioset_data)
+
+        csv_reader = csv.reader(manual_data)
+
+        headers = next(csv_reader)
+
+        for row in csv_reader:
+            food_type = row.pop(1)
+
+            print(row)
+            csv_writer.writerow(row)
+
+        pass
+        
+
+    pass
 

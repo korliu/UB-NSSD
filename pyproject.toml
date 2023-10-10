@@ -22,7 +22,8 @@ dependencies = [
   'torcheval',
   'tensorflow',
   'tensorflow_hub',
-  'tensorflow_io'
+  'tensorflow_io',
+  'IPython'
 ]
 
 [tool.pyright]

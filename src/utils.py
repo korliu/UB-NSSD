@@ -35,7 +35,7 @@ def get_yt_url(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
     
     return youtube_url
 
-def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0, end_second: float=None) -> dict:
+def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float, end_second: float) -> dict:
     #  https://pytube.io/en/latest/
     '''
     Uses pytube and ffmpeg to download audio from youtube_link and download it as a `.wav` file, can define start and seconds for a youtube segment.
@@ -44,8 +44,8 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0
 
     - `youtube_link`: link of the youtube video
     - `save_path`: path where you want your audio to be saved
-    - `start_second`: start second of youtube segment wanted (default: 0)
-    - `end_second`: end second of youtube segment wanted (default: None)
+    - `start_second`: start second of youtube segment wanted
+    - `end_second`: end second of youtube segment wanted 
 
     Returns: dict of keys 'audio_path' and 'audio_tensor'
     '''
@@ -83,7 +83,7 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0
     )
 
     # use ffmpeg to convert mp4 to wav
-    ffmpeg_command_args = ["ffmpeg", "-i" , download_path, "-ac", "1", "-y", "-f", "wav", save_path]
+    ffmpeg_command_args = ["ffmpeg", "-ss", f"{start_second}", "-i" , download_path, "-to", f"{end_second-start_second}", "-ac", "1", "-y", "-f", "wav", save_path]
     
     completed_process = subprocess.run(ffmpeg_command_args,capture_output=True)
     
@@ -104,19 +104,21 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float=0.0
     # if return_tensor == true, will use torchaudio.load to read from the audio_path and return the audio tensor
     download_sr = librosa.get_samplerate(save_path)
 
-    audio_waveform, audio_sr = torch.Tensor(), 0
+    # audio_waveform, audio_sr = torch.Tensor(), 0
 
-    if end_second:
-        duration = end_second-start_second
-        if duration < 0:
-            raise Exception("end_second can not be less than the start_second")
+    # if end_second:
+    #     duration = end_second-start_second
+    #     if duration < 0:
+    #         raise Exception("end_second can not be less than the start_second")
         
-        audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
-                                               frame_offset=int(start_second*download_sr),
-                                               num_frames=int(duration*download_sr))
-    else:
-        audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
-                                               frame_offset=int(start_second*download_sr))
+    #     audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
+    #                                            frame_offset=int(start_second*download_sr),
+    #                                            num_frames=int(duration*download_sr))
+    # else:
+    #     audio_waveform, audio_sr = torchaudio.load(filepath=save_path,
+    #                                            frame_offset=int(start_second*download_sr))
+
+    audio_waveform, audio_sr = torchaudio.load(filepath=save_path)
         
     
     torchaudio.save(save_path, audio_waveform, sample_rate=audio_sr)
