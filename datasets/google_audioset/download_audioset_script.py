@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import json
 import requests
 import csv
@@ -140,8 +141,13 @@ for k,v in dataset_links.items():
                 n_other += 1
                 data_row.append("other")
                 other_data.append(data_row)
-        
+
+        # set seed to reproduce randomizable results
+        seed = np.random.seed(123)
+        np.random.shuffle(other_data)
+
         # roughly 10% of data will be other labels
+    
         for other in other_data[:n_eating//10]:
             csv_writer.writerow(other)
         
@@ -155,7 +161,7 @@ MANUAL_EVAL_DATA = os.path.join("datasets","manual_eval_data.csv")
 
 
 
-TRAIN_DATA = os.path.join(OUTPUT_DATA_FOLDER,"balanced_train.csv")
+TRAIN_DATA = os.path.join(OUTPUT_DATA_FOLDER,"unbalanced_train.csv")
 EVAL_DATA = os.path.join(OUTPUT_DATA_FOLDER,"evaluation.csv")
 
 
@@ -168,7 +174,7 @@ for i, data in enumerate(datasets):
 
     audioset_data_path, manual_data_path = data
 
-    with open(audioset_data_path,'a') as audioset_data, open(manual_data_path,'r') as manual_data:
+    with open(audioset_data_path,'a',newline='') as audioset_data, open(manual_data_path,'r') as manual_data:
         
         csv_writer = csv.writer(audioset_data)
 
@@ -179,7 +185,7 @@ for i, data in enumerate(datasets):
         for row in csv_reader:
             food_type = row.pop(1)
 
-            print(row)
+            # print(row)
             csv_writer.writerow(row)
 
         pass
