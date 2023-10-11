@@ -6,4 +6,5 @@ datasets/*
 !datasets/google_audioset/
 datasets/google_audioset/audioset
 !datasets/manually_annotated.json
+!datasets/manual_data.csv
 meeting_notes/*
