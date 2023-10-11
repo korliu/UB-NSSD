@@ -79,6 +79,14 @@ OUTPUT_DATA_FOLDER = os.path.join(OUTPUT_FOLDER,"audioset_data")
 if not os.path.exists(OUTPUT_DATA_FOLDER):
     os.mkdir(OUTPUT_DATA_FOLDER)
 
+all_data_csv = "raw_data.csv"
+ALL_DATA_PATH = os.path.join(OUTPUT_DATA_FOLDER,all_data_csv)
+with open(ALL_DATA_PATH, "w+", newline='') as f:
+    csv_writer = csv.writer(f)
+
+    headers = ["YTID","start_seconds","end_seconds","positive_labels"]
+    csv_writer.writerow(headers,)
+
 eating_id_labels = {"54": "chewing", "55": "biting"}
 # ids 54 and 55 are chewing and biting
 
@@ -91,9 +99,10 @@ for k,v in dataset_links.items():
         print(f"Download request from {dataset_link} failed, moving on..")
         continue
     
-    with open(os.path.join(OUTPUT_DATA_FOLDER,f"{dataset_name}.csv"), 'w+',newline='') as f:
+    with open(os.path.join(OUTPUT_DATA_FOLDER,f"{dataset_name}.csv"), 'w+', newline='') as f, open(ALL_DATA_PATH, 'a+', newline='') as f_all:
 
-        csv_writer = csv.writer(f)
+        data_csv_writer = csv.writer(f)
+        all_data_csv_writer = csv.writer(f_all)
 
         dataset = dataset_request.text.splitlines()
         # rough amount of rows (not exactly n_data, closer to n_data-3) done to collect a rough amount of data with an other tag.
@@ -110,7 +119,7 @@ for k,v in dataset_links.items():
 
         header = next(csv_reader)
         header[0] = "YTID"
-        csv_writer.writerow(header)
+        data_csv_writer.writerow(header)
 
         for row in csv_reader:
             # print(rf'{row}')
@@ -135,7 +144,9 @@ for k,v in dataset_links.items():
 
             
             if is_eating_video:
-                csv_writer.writerow(data_row)
+                data_csv_writer.writerow(data_row)
+                all_data_csv_writer.writerow(data_row)
+                
 
             elif n_other <= max_num_other_label:
                 n_other += 1
@@ -149,47 +160,33 @@ for k,v in dataset_links.items():
         # roughly 10% of data will be other labels
     
         for other in other_data[:n_eating//10]:
-            csv_writer.writerow(other)
+            data_csv_writer.writerow(other)
+            all_data_csv_writer.writerow(other)
         
             
-            
-
-
+        
 # add manually_annotated
-MANUAL_TRAIN_DATA = os.path.join("datasets","manual_train_data.csv")
-MANUAL_EVAL_DATA = os.path.join("datasets","manual_eval_data.csv")
 
+MANUAL_DATA = os.path.join("datasets","manual_data.csv")
+ALL_DATA = ALL_DATA_PATH
 
+# dataset, manual
+data = (ALL_DATA, MANUAL_DATA)
 
-TRAIN_DATA = os.path.join(OUTPUT_DATA_FOLDER,"unbalanced_train.csv")
-EVAL_DATA = os.path.join(OUTPUT_DATA_FOLDER,"evaluation.csv")
+audioset_data_path, manual_data_path = data
 
+with open(audioset_data_path,'a',newline='') as audioset_data, open(manual_data_path,'r') as manual_data:
+    
+    csv_writer = csv.writer(audioset_data)
 
-datasets = [
-    (TRAIN_DATA, MANUAL_TRAIN_DATA), (EVAL_DATA, MANUAL_EVAL_DATA)
-]
-# dataset,manual
+    csv_reader = csv.reader(manual_data)
 
-for i, data in enumerate(datasets):
+    headers = next(csv_reader)
 
-    audioset_data_path, manual_data_path = data
+    for row in csv_reader:
+        food_type = row.pop(1)
 
-    with open(audioset_data_path,'a',newline='') as audioset_data, open(manual_data_path,'r') as manual_data:
-        
-        csv_writer = csv.writer(audioset_data)
-
-        csv_reader = csv.reader(manual_data)
-
-        headers = next(csv_reader)
-
-        for row in csv_reader:
-            food_type = row.pop(1)
-
-            # print(row)
-            csv_writer.writerow(row)
-
-        pass
-        
-
-    pass
+        # print(row)
+        csv_writer.writerow(row)
+    
 
