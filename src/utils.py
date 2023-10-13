@@ -8,7 +8,7 @@ import subprocess
 import math
 import librosa
 
-def get_yt_url(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
+def get_yt_url(yt_id: str, start_sec: float=None, end_sec: float=None) -> str:
 
     '''
     Gets the corresponding youtube video segment
@@ -24,12 +24,12 @@ def get_yt_url(yt_id: str, start_sec: float=0.00, end_sec: float=None) -> str:
 
     yt_link_prefix = "https://www.youtube.com/embed"
 
-    get_start_sec = int(start_sec)
+    get_start_sec = int(start_sec) if start_sec else None
     get_end_sec = int(math.ceil(end_sec)) if end_sec else None
 
     youtube_url += f"{yt_link_prefix}/{yt_id}"
-    youtube_url += f"?start={get_start_sec}"
-
+    if get_start_sec != None:
+        youtube_url += f"?start={get_start_sec}"
     if get_end_sec != None:
         youtube_url += f"&end={get_end_sec}"
     
@@ -49,15 +49,25 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float, en
 
     Returns: dict of keys 'audio_path' and 'audio_tensor'
     '''
+    output_dict = {"audio_path": None, "audio_tensor": None}
+
+    # skip if exists
+    if os.path.exists(save_path):
+        print(f"\'{save_path}\' file already exists")
+        return output_dict
 
     try:
         yt = pytube.YouTube(youtube_link)
-        
+        yt.check_availability()
+        yt.bypass_age_gate()
+
+        yt_streams = yt.streams
+
     except:
-        raise Exception("Unable to open YouTube link")
+        print(f"Unable to open YouTube link: {youtube_link}")
+        return output_dict
+        # return None
     
-    
-    yt_streams = yt.streams
 
     # collect audio files and adaptive (DASH) files
     # not 100% sure what DASH files are but docs say they're higher quality audio
@@ -122,8 +132,6 @@ def get_audio_from_yt(youtube_link: str, save_path: str, start_second: float, en
         
     
     torchaudio.save(save_path, audio_waveform, sample_rate=audio_sr)
-
-    output_dict = {"audio_path": "", "audio_tensor": None}
 
     output_dict['audio_path'] = save_path
     output_dict['audio_tensor'] = (audio_waveform,audio_sr)
