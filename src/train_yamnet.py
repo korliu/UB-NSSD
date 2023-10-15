@@ -74,4 +74,15 @@ class2id = {k: i for i,k in enumerate(eating_classes)}
 class_id = all_data['positive_labels'].apply(lambda name: class2id.get(name,-1))
 filtered_pd = all_data.assign(target=class_id)
 
-print(filtered_pd[:5])
+filtered_pd['start_seconds'] = filtered_pd['start_seconds'].astype(int).astype(str)
+filtered_pd['end_seconds'] = filtered_pd['end_seconds'].astype(int).astype(str)
+
+# filtered_pd['filename'] = os.path.join(DATASET, filtered_pd['YTID'] + "_" + filtered_pd['start_seconds'] + "-" + filtered_pd['end_seconds'] + ".wav")
+
+filtered_pd = filtered_pd.assign(filepath=lambda row: row.YTID + "_" + row.start_seconds + "-" + row.end_seconds + ".wav")
+filtered_pd['filepath'] = filtered_pd['filepath'].apply(lambda path_name: os.path.join(DATASET,path_name))
+
+print(filtered_pd.head())
+
+if os.path.exists(os.path.join(DATASET, "-116CjQ3MAg_160-170.wav")):
+    print("TEST")
