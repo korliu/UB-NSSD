@@ -14,9 +14,9 @@ def compute_wer(expected_text: str, predicted_text: str):
 
 annotated = json.load(open("datasets/manually_annotated.json"))
 for i, a in enumerate(annotated):
-    model = whisper.load_model("base.en")
+    model = whisper.load_model("medium.en")
 
-    start, end = a['start_second'], a['end_second']
+    start, end = a["start_second"], a["end_second"]
 
     audio_path = f"datasets/{i}.wav"
     utils.get_audio_from_yt(a["yt_link"], audio_path, start, end)
