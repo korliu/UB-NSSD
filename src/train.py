@@ -131,13 +131,13 @@ print("Accuracy: ", accuracy)
 
 # TODO: only runs the first one for now
 # testing_wav_data = load_wav_16k_mono(test.iloc[0]["filename"])
-testing_wav_data = load_wav_16k_mono("datasets/test.wav")
+# testing_wav_data = load_wav_16k_mono("datasets/test.wav")
 
-scores, embeddings, spectrogram = yamnet_model(testing_wav_data)
-result = my_model(embeddings).numpy()
+# scores, embeddings, spectrogram = yamnet_model(testing_wav_data)
+# result = my_model(embeddings).numpy()
 
-inferred_class = my_classes[result.mean(axis=0).argmax()]
-print(f"The main sound is: {inferred_class}")
+# inferred_class = my_classes[result.mean(axis=0).argmax()]
+# print(f"The main sound is: {inferred_class}")
 
 
 class ReduceMeanLayer(tf.keras.layers.Layer):

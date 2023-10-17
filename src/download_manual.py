@@ -9,6 +9,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def format_path(youtube_id, start, end):
+    # TODO: floor/ceil instead of int
     return f"{youtube_id}_{int(start)}-{int(end)}.wav"
 
 
