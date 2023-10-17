@@ -12,6 +12,16 @@ def format_path(youtube_id, start, end):
     return f"{youtube_id}_{int(start)}-{int(end)}.wav"
 
 
+# TODO: temp for testing
+utils.get_audio_from_yt(
+    youtube_link=utils.get_yt_url("tOkANpLTqvc"),
+    save_path="datasets/test.wav",
+    start_second=0,
+    end_second=1,
+)
+data, samplerate = soundfile.read("datasets/test.wav")
+soundfile.write("datasets/test.wav", data, samplerate, subtype="PCM_16")
+
 with open(CSV_PATH) as f:
     reader = csv.reader(f)
     next(reader)  # skip header
