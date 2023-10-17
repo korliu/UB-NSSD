@@ -11,3 +11,5 @@ datasets/google_audioset/audioset
 !datasets/manual_data.csv
 
 meeting_notes/*
+
+swallow_yamnet

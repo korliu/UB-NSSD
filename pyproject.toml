@@ -7,7 +7,7 @@ authors = [
   { name = "korliu", email = "koreyliu1221@gmail.com" },
 ]
 dependencies = [
-  'numba',
+  # 'numba',
   'numpy',
   'torch',
   'torchaudio',
@@ -20,14 +20,15 @@ dependencies = [
   'matplotlib',
   'requests',
   'torcheval',
-  'tensorflow',
+  'tensorflow == 2.13.0', # tensorflow-io doesn't support 2.14.0+ yet
   'tensorflow_hub',
   'tensorflow_io',
-  'IPython'
+  'IPython',
+  'soundfile',
 ]
 
 [tool.pyright]
-# typeCheckingMode = "basic"
+typeCheckingMode = "basic"
 
 [tool.ruff]
 # fixable = ["ALL"]

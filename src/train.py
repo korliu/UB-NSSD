@@ -18,7 +18,7 @@ yamnet_model = hub.load("https://tfhub.dev/google/yamnet/1")
 
 pd_data = pd.read_csv(download_manual.CSV_PATH)
 map_class_to_id = {k: i for i, k in enumerate(pd_data["positive_labels"].unique())}
-my_classes = map_class_to_id.keys()
+my_classes = list(map_class_to_id.keys())
 
 filtered_pd = pd_data
 filtered_pd["target"] = filtered_pd["positive_labels"].apply(
@@ -87,8 +87,11 @@ train_ds = cached_ds.filter(lambda embedding, label, fold: fold < 2)
 val_ds = cached_ds.filter(lambda embedding, label, fold: fold == 2)
 test_ds = cached_ds.filter(lambda embedding, label, fold: fold == 2)
 
+
 # remove the folds column now that it's not needed anymore
-remove_fold_column = lambda embedding, label, fold: (embedding, label)
+def remove_fold_column(embedding, label, fold):
+    return embedding, label
+
 
 train_ds = train_ds.map(remove_fold_column)
 val_ds = val_ds.map(remove_fold_column)
@@ -125,8 +128,35 @@ loss, accuracy = my_model.evaluate(test_ds)
 print("Loss: ", loss)
 print("Accuracy: ", accuracy)
 
-# scores, embeddings, spectrogram = yamnet_model(testing_wav_data)
-# result = my_model(embeddings).numpy()
 
-# inferred_class = my_classes[result.mean(axis=0).argmax()]
-# print(f'The main sound is: {inferred_class}')
+# TODO: only runs the first one for now
+# testing_wav_data = load_wav_16k_mono(test.iloc[0]["filename"])
+testing_wav_data = load_wav_16k_mono("datasets/test.wav")
+
+scores, embeddings, spectrogram = yamnet_model(testing_wav_data)
+result = my_model(embeddings).numpy()
+
+inferred_class = my_classes[result.mean(axis=0).argmax()]
+print(f"The main sound is: {inferred_class}")
+
+
+class ReduceMeanLayer(tf.keras.layers.Layer):
+    def __init__(self, axis=0, **kwargs):
+        super(ReduceMeanLayer, self).__init__(**kwargs)
+        self.axis = axis
+
+    def call(self, input):
+        return tf.math.reduce_mean(input, axis=self.axis)
+
+
+saved_model_path = "./swallow_yamnet"
+
+input_segment = tf.keras.layers.Input(shape=(), dtype=tf.float32, name="audio")
+embedding_extraction_layer = hub.KerasLayer(
+    "https://tfhub.dev/google/yamnet/1", trainable=False, name="yamnet"
+)
+_, embeddings_output, _ = embedding_extraction_layer(input_segment)
+serving_outputs = my_model(embeddings_output)
+serving_outputs = ReduceMeanLayer(axis=0, name="classifier")(serving_outputs)
+serving_model = tf.keras.Model(input_segment, serving_outputs)
+serving_model.save(saved_model_path, include_optimizer=False)
