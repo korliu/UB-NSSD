@@ -1,6 +1,7 @@
 import utils
 import csv
 from pathlib import Path
+import soundfile
 
 CSV_PATH = Path("datasets/manual_data.csv")
 OUTPUT_DIR = Path("datasets/manual")
@@ -25,5 +26,10 @@ with open(CSV_PATH) as f:
                 start_second=start,
                 end_second=end,
             )["audio_path"]
+
+            # for compatibility with:
+            # https://www.tensorflow.org/api_docs/python/tf/audio/decode_wav
+            data, samplerate = soundfile.read(path)
+            soundfile.write(path, data, samplerate, subtype="PCM_16")
 
         print(output_path)
