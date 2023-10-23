@@ -9,14 +9,14 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_io as tfio
 
-import download_manual  # noqa: F401
+import download  # noqa: F401
 
 # 80% train, 20% validate/test (for now)
 TRAIN_RATIO = 0.8
 
 yamnet_model = hub.load("https://tfhub.dev/google/yamnet/1")
 
-pd_data = pd.read_csv(download_manual.CSV_PATH)
+pd_data = pd.read_csv(download.CSV_PATH)
 map_class_to_id = {k: i for i, k in enumerate(pd_data["positive_labels"].unique())}
 my_classes = list(map_class_to_id.keys())
 
@@ -26,10 +26,8 @@ filtered_pd["target"] = filtered_pd["positive_labels"].apply(
 )
 filtered_pd["filename"] = filtered_pd.apply(
     lambda row: str(
-        download_manual.OUTPUT_DIR
-        / download_manual.format_path(
-            row["YTID"], row["start_seconds"], row["end_seconds"]
-        )
+        download.OUTPUT_DIR
+        / download.format_path(row["YTID"], row["start_seconds"], row["end_seconds"])
     ),
     axis=1,
 )

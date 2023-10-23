@@ -10,14 +10,14 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_io as tfio
 
-import download_manual
+import download
 
 OUTPUT = "outputs/yamnet_analysis.csv"
 
 yamnet_model = hub.load("https://tfhub.dev/google/yamnet/1")
 reloaded_model = tf.saved_model.load("./swallow_yamnet")
 
-pd_data = pd.read_csv(download_manual.CSV_PATH)
+pd_data = pd.read_csv(download.CSV_PATH)
 map_class_to_id = {k: i for i, k in enumerate(pd_data["positive_labels"].unique())}
 my_classes = list(map_class_to_id.keys())
 
@@ -38,10 +38,8 @@ class_names = list(pd.read_csv(class_map_path)["display_name"])
 
 pd_data["filename"] = pd_data.apply(
     lambda row: str(
-        download_manual.OUTPUT_DIR
-        / download_manual.format_path(
-            row["YTID"], row["start_seconds"], row["end_seconds"]
-        )
+        download.OUTPUT_DIR
+        / download.format_path(row["YTID"], row["start_seconds"], row["end_seconds"])
     ),
     axis=1,
 )
