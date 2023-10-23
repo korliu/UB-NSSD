@@ -6,20 +6,17 @@ authors = [
   { name = "ok-nick", email = "nick.libraries@gmail.com" },
   { name = "korliu", email = "koreyliu1221@gmail.com" },
 ]
+requires-python = ">3.11.4" # has only been tested on this version
 dependencies = [
-  # 'numba',
   'numpy',
   'torch',
   'torchaudio',
   'librosa',
-  'tqdm',
   'more-itertools',
-  'tiktoken == 0.3.3',
   'pandas',
   'pytube',
   'matplotlib',
-  'requests',
-  'torcheval',
+  # 'requests',
   'tensorflow == 2.13.0', # tensorflow-io doesn't support 2.14.0+ yet
   'tensorflow_hub',
   'tensorflow_io',
@@ -28,7 +25,7 @@ dependencies = [
 ]
 
 [tool.pyright]
-typeCheckingMode = "basic"
+typeCheckingMode = "off"
 
 [tool.ruff]
 # fixable = ["ALL"]
