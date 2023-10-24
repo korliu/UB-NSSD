@@ -5,7 +5,7 @@ import tensorflow as tf
 
 import train
 
-DATASET_PATH = "datasets/foods_data.csv"
+DATASET_PATH = "datasets/all_data.csv"
 SAVE_PATH = "nssd_model"
 
 parser = argparse.ArgumentParser(description="UB-NSSD YAMNet transfer learning model")
@@ -39,7 +39,8 @@ if args.test:
     # model = tf.saved_model.load(SAVE_PATH)
     model = tf.keras.models.load_model(SAVE_PATH)
     model.summary()
-    # model.compile(metrics=["accuracy"])
+
+    y_true, y_pred = [], []
     for row in test_split:
         waveform = train.load_wav_16k_mono(row[0])
         results = model(waveform)
@@ -47,6 +48,29 @@ if args.test:
         inferred_class = classes[top_class]
         class_probabilities = tf.nn.softmax(results, axis=-1)
         top_score = class_probabilities[top_class]
+
+        y_true.append(class_to_id[row[1].numpy().decode()])
+        y_pred.append(top_class.numpy())
+
         print(
-            f"actual: {row[1].numpy().decode()}, inferred: {inferred_class}, score: {top_score.numpy()}"
+            f"actual: {row[1].numpy().decode()}, inferred: {inferred_class}, score: {top_score.numpy()}",
         )
+
+    auc = tf.keras.metrics.AUC()
+    auc.update_state(y_true, y_pred)
+    print(f"AUC: {auc.result().numpy()}")
+
+    precision = tf.keras.metrics.Precision()
+    precision.update_state(y_true, y_pred)
+    precision.result().numpy()
+    print(f"Precision: {precision.result().numpy()}")
+
+    recall = tf.keras.metrics.Recall()
+    recall.update_state(y_true, y_pred)
+    recall.result().numpy()
+    print(f"Recall: {recall.result().numpy()}")
+
+    # f1 = tf.keras.metrics.F1Score()
+    # f1.update_state(y_true, y_pred)
+    # f1.result().numpy()
+    # print(f"F1: {f1.result().numpy()}")
