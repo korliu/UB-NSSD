@@ -9,6 +9,7 @@ datasets/*
 datasets/google_audioset/audioset
 !datasets/manually_annotated.json
 !datasets/manual_data.csv
+!datasets/eating_foods_sound/foods_data.csv
 
 meeting_notes/*
 
