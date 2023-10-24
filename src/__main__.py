@@ -1,60 +1,51 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import argparse
+
 import pandas as pd
 import tensorflow as tf
-import tensorflow_hub as tf_hub
-import os
-from IPython import display
-import torchaudio
 
-# TODO: make path more foolproof
-# utils.get_audio_from_yt(
-# "https://www.youtube.com/watch?v=LRvwtlkV-IQ", "datasets/yt.wav"
-# )
+import train
 
-# https://www.tensorflow.org/tutorials/audio/transfer_learning_audio
+DATASET_PATH = "TODO"
+SAVE_PATH = "nssd_model"
 
-
-YAMNET_MODEL_LINK = "https://tfhub.dev/google/yamnet/1"
-
-yamnet_model = tf_hub.load(YAMNET_MODEL_LINK)
-
-test_path = os.path.join("datasets", "test.wav")
-# test_wav_file = tf.keras.utils.get_file(test_path)
-
-# Input: 3 seconds of silence as mono 16 kHz waveform samples.
-# waveform = np.zeros(3 * 16000, dtype=np.float32)
-
-waveform, sr = torchaudio.load(uri=test_path)
-print(waveform, sr)
-transform = torchaudio.transforms.Resample(sr, 16000)
-waveform = transform(waveform)
-
-np_wav = waveform.numpy()
-print(np.shape(np_wav))
-print(np_wav)
-
-np_wav = np_wav[0]
-print(waveform, np_wav)
-
-_ = plt.plot(np_wav)
+parser = argparse.ArgumentParser(description="UB-NSSD YAMNet transfer learning model")
+parser.add_argument("--train", action="store_true", help="Whether to train the model")
+parser.add_argument("--test", action="store_true", help="Whether to test the model")
+args = parser.parse_args()
 
 
-# plt.show()
-display.Audio(np_wav, rate=16000)
+if args.train:
+    yamnet_model = train.load_yamnet()
 
-class_map_path = yamnet_model.class_map_path().numpy().decode("utf-8")
-print(class_map_path, "test")
-print(yamnet_model)
+    dataframe = pd.read_csv(DATASET_PATH)
+    dataset = train.preprocess_dataframe(yamnet_model, dataframe)
+    train_split, validate_split, test_split = train.split_dataset(dataset)
 
-class_names = list(pd.read_csv(class_map_path)["display_name"])
+    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+    classes = list(class_to_id.keys())
 
-print(class_names)
+    model = train.train(train_split, validate_split, len(classes))
+    train.save_simple(yamnet_model, model, SAVE_PATH)
 
-scores, embeddings, spectrogram = yamnet_model(np_wav)
-class_scores = tf.reduce_mean(scores, axis=0)
-top_class = tf.math.argmax(class_scores)
-inferred_class = class_names[top_class]
 
-print(f"The main sound is: {inferred_class}")
-print(f"The embeddings shape: {embeddings.shape}")
+if args.test:
+    dataframe = pd.read_csv(DATASET_PATH)
+    _, _, test_split = train.split_dataframe(dataframe)
+
+    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+    classes = list(class_to_id.keys())
+
+    model = tf.saved_model.load(SAVE_PATH)
+    model.summary()  # TODO: temp
+    model.compile(metrics=["accuracy"])
+
+    evaluation = model.evaluate(test_split, return_dict=True)
+
+    model.predict(test_split)
+
+    # waveform = train.load_wav_16k_mono(test_split["path"])  # TODO: make util module
+    # results = model(waveform)
+    # top_class = tf.math.argmax(results)
+    # inferred_class = classes[top_class]
+    # class_probabilities = tf.nn.softmax(results, axis=-1)
+    # top_score = class_probabilities[top_class]
