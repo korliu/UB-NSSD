@@ -36,13 +36,17 @@ if args.test:
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     classes = list(class_to_id.keys())
 
-    model = tf.saved_model.load(SAVE_PATH)
-
-    # evaluation = model.evaluate(test_split, return_dict=True)
-
-    # waveform = train.load_wav_16k_mono(test_split["path"])  # TODO: make util module
-    # results = model(waveform)
-    # top_class = tf.math.argmax(results)
-    # inferred_class = classes[top_class]
-    # class_probabilities = tf.nn.softmax(results, axis=-1)
-    # top_score = class_probabilities[top_class]
+    # model = tf.saved_model.load(SAVE_PATH)
+    model = tf.keras.models.load_model(SAVE_PATH)
+    model.summary()
+    # model.compile(metrics=["accuracy"])
+    for row in test_split:
+        waveform = train.load_wav_16k_mono(row[0])
+        results = model(waveform)
+        top_class = tf.math.argmax(results)
+        inferred_class = classes[top_class]
+        class_probabilities = tf.nn.softmax(results, axis=-1)
+        top_score = class_probabilities[top_class]
+        print(
+            f"actual: {row[1].numpy().decode()}, inferred: {inferred_class}, score: {top_score.numpy()}"
+        )
