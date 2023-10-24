@@ -4,7 +4,7 @@ import tensorflow_io as tfio
 
 TRAIN_RATIO = 0.6
 VALIDATE_RATIO = 0.2
-TEST_RATIO = 1 - (TRAIN_RATIO + VALIDATE_RATIO)
+TEST_RATIO = 0.2
 
 SHUFFLE_SEED = 42
 BATCH_SIZE = 32
@@ -13,6 +13,7 @@ EPOCHS = 20
 MODEL_NAME = "NSSD"
 
 
+# TODO: convert 24-bit audio to 16-bit audio
 @tf.function
 def load_wav_16k_mono(path):
     file_contents = tf.io.read_file(path)
@@ -23,6 +24,8 @@ def load_wav_16k_mono(path):
     return wav
 
 
+# audio data is split into 0.48 second frames, thus, rf.repeat is needed to
+# copy the column for each frame
 def extract_embedding(yamnet_model, audio_data, variant):
     scores, embeddings, spectrogram = yamnet_model(audio_data)
     num_embeddings = tf.shape(embeddings)[0]
@@ -35,12 +38,14 @@ def load_yamnet():
 
 # takes in pandas dataframe and relevant fields, outputs tensorflow dataset
 def preprocess_dataframe(yamnet_model, dataframe, class_to_id):
+    # map classes to their ids
+    dataframe["variant"] = dataframe["variant"].map(
+        lambda variant: class_to_id[variant]
+    )
     # make tensorflow dataset with relevant fields
     dataset = tf.data.Dataset.from_tensor_slices(
         (dataframe["path"], dataframe["variant"])
     )
-    # map classes to their ids
-    dataset = dataset.map(lambda path, variant: (path, class_to_id[map]))
     # convert audio to 16k mono
     dataset = dataset.map(lambda path, variant: (load_wav_16k_mono(path), variant))
     # applies the embedding extraction model to wav data
@@ -53,28 +58,23 @@ def preprocess_dataframe(yamnet_model, dataframe, class_to_id):
     return dataset
 
 
-def split_dataframe(dataframe):
+def split_dataframe(dataframe, size):
     return split_dataset(
         # TODO: keep other columns as well
-        tf.data.Dataset.from_tensor_slices((dataframe["path"], dataframe["variant"]))
+        tf.data.Dataset.from_tensor_slices((dataframe["path"], dataframe["variant"])),
+        size,
     )
 
 
 # takes a tensorflow dataset and splits it into a train/test/validate dataset
-def split_dataset(dataset):
-    size = tf.data.experimental.cardinality(dataset)
-    train_size = TRAIN_RATIO * size
-    validate_size = VALIDATE_RATIO * size
-    test_size = TEST_RATIO * size
+def split_dataset(dataset, size):
+    train_size = int(TRAIN_RATIO * size)
+    validate_size = int(VALIDATE_RATIO * size)
+    test_size = int(TEST_RATIO * size)
 
     # TODO: need to evenly distrbute classes among splits
-    dataset.shuffle(seed=SHUFFLE_SEED)
-    train = (
-        # TODO: add len of dataset to shuffle if errors
-        dataset.take(train_size)
-        .shuffle()
-        .prefetch(tf.data.AUTOTUNE)
-    )
+    dataset.shuffle(size, seed=SHUFFLE_SEED)
+    train = dataset.take(train_size).shuffle(train_size).prefetch(tf.data.AUTOTUNE)
     validate = dataset.skip(train_size).take(validate_size).prefetch(tf.data.AUTOTUNE)
     test = (
         dataset.skip(train_size + validate_size)

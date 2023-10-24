@@ -10,6 +10,8 @@ datasets/google_audioset/audioset
 !datasets/manually_annotated.json
 !datasets/manual_data.csv
 !datasets/foods_data.csv
+# TODO: temporary
+!datasets/to16bit.py 
 
 meeting_notes/*
 
