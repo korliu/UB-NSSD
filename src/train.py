@@ -1,56 +1,21 @@
-import os
-
-from IPython import display
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-
 import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_io as tfio
 
-import download  # noqa: F401
+TRAIN_RATIO = 0.6
+VALIDATE_RATIO = 0.2
+TEST_RATIO = 1 - (TRAIN_RATIO + VALIDATE_RATIO)
 
-# 80% train, 20% validate/test (for now)
-TRAIN_RATIO = 0.8
+SHUFFLE_SEED = 42
+BATCH_SIZE = 32
+EPOCHS = 20
 
-yamnet_model = hub.load("https://tfhub.dev/google/yamnet/1")
-
-pd_data = pd.read_csv(download.CSV_PATH)
-map_class_to_id = {k: i for i, k in enumerate(pd_data["positive_labels"].unique())}
-my_classes = list(map_class_to_id.keys())
-
-filtered_pd = pd_data
-filtered_pd["target"] = filtered_pd["positive_labels"].apply(
-    lambda name: map_class_to_id[name]
-)
-filtered_pd["filename"] = filtered_pd.apply(
-    lambda row: str(
-        download.OUTPUT_DIR
-        / download.format_path(row["YTID"], row["start_seconds"], row["end_seconds"])
-    ),
-    axis=1,
-)
-
-train = filtered_pd.sample(frac=TRAIN_RATIO)
-test = filtered_pd.drop(train.index)
-train["fold"] = 1
-test["fold"] = 2
-
-filtered_pd = pd.concat([train, test])
-print(filtered_pd.head())
-
-filenames = filtered_pd["filename"]
-targets = filtered_pd["target"]
-folds = filtered_pd["fold"]
-
-main_ds = tf.data.Dataset.from_tensor_slices((filenames, targets, folds))
+MODEL_NAME = "NSSD"
 
 
 @tf.function
-def load_wav_16k_mono(filename):
-    """Load a WAV file, convert it to a float tensor, resample to 16 kHz single-channel audio."""
-    file_contents = tf.io.read_file(filename)
+def load_wav_16k_mono(path):
+    file_contents = tf.io.read_file(path)
     wav, sample_rate = tf.audio.decode_wav(file_contents, desired_channels=1)
     wav = tf.squeeze(wav, axis=-1)
     sample_rate = tf.cast(sample_rate, dtype=tf.int64)
@@ -58,84 +23,96 @@ def load_wav_16k_mono(filename):
     return wav
 
 
-def load_wav_for_map(filename, label, fold):
-    return load_wav_16k_mono(filename), label, fold
-
-
-main_ds = main_ds.map(load_wav_for_map)
-
-
-# applies the embedding extraction model to a wav data
-def extract_embedding(wav_data, label, fold):
-    """run YAMNet to extract embedding from the wav data"""
-    scores, embeddings, spectrogram = yamnet_model(wav_data)
+def extract_embedding(yamnet_model, audio_data, variant):
+    scores, embeddings, spectrogram = yamnet_model(audio_data)
     num_embeddings = tf.shape(embeddings)[0]
-    return (
-        embeddings,
-        tf.repeat(label, num_embeddings),
-        tf.repeat(fold, num_embeddings),
+    return (embeddings, tf.repeat(variant, num_embeddings))
+
+
+def load_yamnet():
+    return hub.load("https://tfhub.dev/google/yamnet/1")
+
+
+# takes in pandas dataframe and relevant fields, outputs tensorflow dataset
+def preprocess_dataframe(yamnet_model, dataframe, class_to_id):
+    # make tensorflow dataset with relevant fields
+    dataset = tf.data.Dataset.from_tensor_slices(
+        (dataframe["path"], dataframe["variant"])
+    )
+    # map classes to their ids
+    dataset = dataset.map(lambda path, variant: (path, class_to_id[map]))
+    # convert audio to 16k mono
+    dataset = dataset.map(lambda path, variant: (load_wav_16k_mono(path), variant))
+    # applies the embedding extraction model to wav data
+    dataset = dataset.map(
+        lambda audio_data, variant: extract_embedding(yamnet_model, audio_data, variant)
+    ).unbatch()
+    # cache, batch, and prefetch dataset
+    dataset = dataset.cache().batch(BATCH_SIZE)
+
+    return dataset
+
+
+def split_dataframe(dataframe):
+    return split_dataset(
+        # TODO: keep other columns as well
+        tf.data.Dataset.from_tensor_slices((dataframe["path"], dataframe["variant"]))
     )
 
 
-# extract embedding
-main_ds = main_ds.map(extract_embedding).unbatch()
+# takes a tensorflow dataset and splits it into a train/test/validate dataset
+def split_dataset(dataset):
+    size = tf.data.experimental.cardinality(dataset)
+    train_size = TRAIN_RATIO * size
+    validate_size = VALIDATE_RATIO * size
+    test_size = TEST_RATIO * size
 
-cached_ds = main_ds.cache()
-train_ds = cached_ds.filter(lambda embedding, label, fold: fold < 2)
-val_ds = cached_ds.filter(lambda embedding, label, fold: fold == 2)
-test_ds = cached_ds.filter(lambda embedding, label, fold: fold == 2)
-
-
-# remove the folds column now that it's not needed anymore
-def remove_fold_column(embedding, label, fold):
-    return embedding, label
-
-
-train_ds = train_ds.map(remove_fold_column)
-val_ds = val_ds.map(remove_fold_column)
-test_ds = test_ds.map(remove_fold_column)
-
-train_ds = train_ds.cache().shuffle(1000).batch(32).prefetch(tf.data.AUTOTUNE)
-val_ds = val_ds.cache().batch(32).prefetch(tf.data.AUTOTUNE)
-test_ds = test_ds.cache().batch(32).prefetch(tf.data.AUTOTUNE)
-my_model = tf.keras.Sequential(
-    [
-        tf.keras.layers.Input(shape=(1024), dtype=tf.float32, name="input_embedding"),
-        tf.keras.layers.Dense(512, activation="relu"),
-        tf.keras.layers.Dense(len(my_classes)),
-    ],
-    name="my_model",
-)
-
-my_model.summary()
-
-my_model.compile(
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    optimizer="adam",
-    metrics=["accuracy"],
-)
-
-callback = tf.keras.callbacks.EarlyStopping(
-    monitor="loss", patience=3, restore_best_weights=True
-)
-
-history = my_model.fit(train_ds, epochs=20, validation_data=val_ds, callbacks=callback)
-
-loss, accuracy = my_model.evaluate(test_ds)
-
-print("Loss: ", loss)
-print("Accuracy: ", accuracy)
+    # TODO: need to evenly distrbute classes among splits
+    dataset.shuffle(seed=SHUFFLE_SEED)
+    train = (
+        # TODO: add len of dataset to shuffle if errors
+        dataset.take(train_size)
+        .shuffle()
+        .prefetch(tf.data.AUTOTUNE)
+    )
+    validate = dataset.skip(train_size).take(validate_size).prefetch(tf.data.AUTOTUNE)
+    test = (
+        dataset.skip(train_size + validate_size)
+        .take(test_size)
+        .prefetch(tf.data.AUTOTUNE)
+    )
+    return train, validate, test
 
 
-# TODO: only runs the first one for now
-# testing_wav_data = load_wav_16k_mono(test.iloc[0]["filename"])
-# testing_wav_data = load_wav_16k_mono("datasets/test.wav")
-
-# scores, embeddings, spectrogram = yamnet_model(testing_wav_data)
-# result = my_model(embeddings).numpy()
-
-# inferred_class = my_classes[result.mean(axis=0).argmax()]
-# print(f"The main sound is: {inferred_class}")
+def train(train, validate, num_classes):
+    # TODO: add input layers based on extra fields
+    model = tf.keras.Sequential(
+        [
+            # embeddings
+            tf.keras.layers.Input(
+                shape=(1024), dtype=tf.float32, name="input_embedding"
+            ),
+            # hidden layer
+            tf.keras.layers.Dense(512, activation="relu"),
+            # output
+            tf.keras.layers.Dense(num_classes),
+        ],
+        name=MODEL_NAME,
+    )
+    model.compile(
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        optimizer="adam",
+        metrics=["accuracy"],
+    )
+    model.fit(
+        train,
+        epochs=EPOCHS,
+        validation_data=validate,
+        callbacks=tf.keras.callbacks.EarlyStopping(
+            monitor="loss", patience=3, restore_best_weights=True
+        ),
+    )
+    return model
 
 
 class ReduceMeanLayer(tf.keras.layers.Layer):
@@ -147,14 +124,14 @@ class ReduceMeanLayer(tf.keras.layers.Layer):
         return tf.math.reduce_mean(input, axis=self.axis)
 
 
-saved_model_path = "./swallow_yamnet"
-
-input_segment = tf.keras.layers.Input(shape=(), dtype=tf.float32, name="audio")
-embedding_extraction_layer = hub.KerasLayer(
-    "https://tfhub.dev/google/yamnet/1", trainable=False, name="yamnet"
-)
-_, embeddings_output, _ = embedding_extraction_layer(input_segment)
-serving_outputs = my_model(embeddings_output)
-serving_outputs = ReduceMeanLayer(axis=0, name="classifier")(serving_outputs)
-serving_model = tf.keras.Model(input_segment, serving_outputs)
-serving_model.save(saved_model_path, include_optimizer=False)
+# saves the model with a simple wav input layer
+def save_simple(yamnet_model, model, save_path):
+    input_segment = tf.keras.layers.Input(shape=(), dtype=tf.float32, name="audio")
+    embedding_extraction_layer = hub.KerasLayer(
+        yamnet_model, trainable=False, name="yamnet"
+    )
+    _, embeddings_output, _ = embedding_extraction_layer(input_segment)
+    serving_outputs = model(embeddings_output)
+    serving_outputs = ReduceMeanLayer(axis=0, name="classifier")(serving_outputs)
+    serving_model = tf.keras.Model(input_segment, serving_outputs)
+    serving_model.save(save_path)
