@@ -9,7 +9,7 @@ datasets\eating_foods_sound\aloe\aloe_9_55.wav,swallow,aloe,na,
 datasets\eating_foods_sound\aloe\aloe_10_02.wav,chewing,aloe,na,
 datasets\eating_foods_sound\aloe\aloe_12_03.wav,chewing,aloe,na,
 datasets\eating_foods_sound\aloe\aloe_12_32.wav,chewing,aloe,na,"biting"
-datasets\eating_foods_sound\burger\burger_4_02.wav,chewing?,burger,na,"swallow"
+datasets\eating_foods_sound\burger\burger_4_02.wav,chewing,burger,na,"swallow"
 datasets\eating_foods_sound\burger\burger_4_34.wav,chewing,burger,na,
 datasets\eating_foods_sound\burger\burger_4_37.wav,swallow,burger,na,
 datasets\eating_foods_sound\burger\burger_6_44.wav,biting,burger,na,
