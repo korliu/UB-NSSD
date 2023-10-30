@@ -8,20 +8,19 @@ authors = [
 ]
 requires-python = ">3.11.4" # has only been tested on this version
 dependencies = [
-  'numpy',
-  'torch',
-  'torchaudio',
-  'librosa',
-  'more-itertools',
-  'pandas',
-  'pytube',
-  'matplotlib',
-  # 'requests',
-  'tensorflow == 2.13.0', # tensorflow-io doesn't support 2.14.0+ yet
-  'tensorflow_hub',
-  'tensorflow_io',
-  'IPython',
-  'soundfile',
+  'numpy == 1.26.1',
+  'torch == 2.1.0',
+  'torchaudio == 2.1.0',
+  'librosa == 0.10.1',
+  'more-itertools == 10.1.0',
+  'pandas == 2.1.2',
+  'pytube == 15.0.0',
+  'matplotlib == 3.8.0',
+  'tensorflow == 2.13.0',     # tensorflow-io doesn't support 2.14.0+ yet
+  'tensorflow_hub == 0.15.0',
+  'tensorflow_io == 0.34.0',
+  'IPython == 8.17.1',
+  'soundfile == 0.12.1',
 ]
 
 [tool.pyright]
@@ -32,4 +31,4 @@ typeCheckingMode = "off"
 # select = ["ALL"]
 # ignore = ["ERA001"]
 
-[tool.black]
+# [tool.black]
