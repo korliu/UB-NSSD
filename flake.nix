@@ -1,6 +1,10 @@
 {
   description = "UB-NSSD development environment";
 
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  };
+
   outputs = {
     self,
     nixpkgs,
@@ -10,78 +14,100 @@
       inherit system;
       config = {
         allowUnfree = true;
-        cudaSupport = true;
+        cudaSupport = false;
       };
     };
   in {
-    devShells.${system}.default = pkgs.mkShellNoCC {
+    devShells.${system}.default = pkgs.mkShell {
       LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
 
-      # TODO: https://cyberchris.xyz/posts/nix-python-pyright/
       buildInputs = with pkgs; let
-        whisper-at = python310Packages.buildPythonPackage rec {
-          pname = "whisper-at";
-          version = "0.5";
+        tensorflow-hub = python311Packages.buildPythonPackage rec {
+          pname = "tensorflow_hub";
+          version = "0.15.0";
+          format = "wheel";
 
-          src = python310Packages.fetchPypi {
-            inherit pname version;
-            sha256 = "f685f7bd71ab262b7307d9bd1e0eea5eac75b9ba34add422ea9e97937f21b19f";
+          src = python311Packages.fetchPypi {
+            inherit pname version format;
+            dist = "py2.py3";
+            python = "py2.py3";
+            platform = "any";
+            sha256 = "8af12cb2d1fc0d1a9509a620e7589daf173714e99f08aaf090a4748ff20b45c8";
           };
 
-          propagatedBuildInputs = with python310Packages; [
-            numba
+          propagatedBuildInputs = with python311Packages; [
             numpy
-            torch-bin
-            tqdm
-            more-itertools
-            tiktoken
-            openai-triton-bin
+            protobuf
           ];
 
           doCheck = false;
         };
-        torcheval = python310Packages.buildPythonPackage rec {
-          pname = "torcheval";
-          version = "0.0.6";
+        tensorflow-estimator = python311Packages.buildPythonPackage rec {
+          pname = "tensorflow_estimator";
+          version = "2.13.0";
+          format = "wheel";
 
-          src = fetchFromGitHub {
-            owner = "pytorch";
-            repo = "${pname}";
-            rev = "${version}";
-            sha256 = "FnMSPU8tjXegLH4speeyD8UDrKSvjf8STftt7aXTuJI=";
+          src = python311Packages.fetchPypi {
+            inherit pname version format;
+            dist = "py2.py3";
+            python = "py2.py3";
+            platform = "any";
+            sha256 = "6f868284eaa654ae3aa7cacdbef2175d0909df9fcf11374f5166f8bf475952aa";
           };
 
-          propagatedBuildInputs = with python310Packages; [
-            typing-extensions
+          propagatedBuildInputs = with python311Packages; [
+            mock
+            numpy
+            absl-py
           ];
 
           doCheck = false;
         };
-        pytube = python310Packages.buildPythonPackage rec {
-          pname = "pytube";
-          version = "15.0.0";
+        tensorflow-io = python311Packages.buildPythonPackage rec {
+          pname = "tensorflow_io";
+          version = "0.34.0";
+          format = "wheel";
 
-          src = fetchFromGitHub {
-            owner = "${pname}";
-            repo = "${pname}";
-            rev = "v${version}";
-            sha256 = "Nvs/YlOjk/P5nd1kpUnCM2n6yiEaqZP830UQI0Ug1rk=";
+          src = python311Packages.fetchPypi {
+            inherit pname version format;
+            dist = "cp311";
+            python = "cp311";
+            abi = "cp311";
+            platform = "manylinux_2_12_x86_64.manylinux2010_x86_64";
+            sha256 = "2128203e29bc02b69e73aaddcd3c8300de515f5162163b3562a792bc5826b375";
           };
+
+          propagatedBuildInputs = with python311Packages; [
+            # TODO
+          ];
 
           doCheck = false;
         };
-      in [
-        ffmpeg
+      in
+        [
+          ffmpeg
 
-        python310
-        python310Packages.matplotlib
-        # python310Packages.pytube
-        python310Packages.pandas
-        python310Packages.torchaudio-bin
-        whisper-at
-        torcheval
-        pytube
-      ];
+          python311
+          tensorflow-hub
+          tensorflow-io
+
+          # TODO: for tensorflow, should be packaged upstream
+          tensorflow-estimator
+          python311Packages.keras
+        ]
+        ++ (with python311Packages; [
+          numpy
+          torch
+          torchaudio
+          librosa
+          more-itertools
+          pytube
+          pandas
+          matplotlib
+          tensorflow
+          ipython
+          soundfile
+        ]);
     };
   };
 }

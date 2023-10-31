@@ -19,7 +19,7 @@ dependencies = [
   'tensorflow == 2.13.0',     # tensorflow-io doesn't support 2.14.0+ yet
   'tensorflow_hub == 0.15.0',
   'tensorflow_io == 0.34.0',
-  'IPython == 8.17.1',
+  'ipython == 8.17.1',
   'soundfile == 0.12.1',
 ]
 
@@ -27,7 +27,7 @@ dependencies = [
 typeCheckingMode = "off"
 
 [tool.ruff]
-# fixable = ["ALL"]
+fixable = ["ALL"]
 # select = ["ALL"]
 # ignore = ["ERA001"]
 
