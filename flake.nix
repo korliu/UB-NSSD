@@ -19,8 +19,6 @@
     };
   in {
     devShells.${system}.default = pkgs.mkShell {
-      LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
-
       buildInputs = with pkgs; let
         tensorflow-hub = python311Packages.buildPythonPackage rec {
           pname = "tensorflow_hub";
