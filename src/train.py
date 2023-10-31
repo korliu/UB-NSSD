@@ -39,24 +39,25 @@ def load_yamnet():
 
 def split_dataframe(dataframe):
     # shuffle dataframe
-    dataframe = dataframe.sample(frac=1,random_state=SHUFFLE_SEED)
-
-    size = dataframe.size
-    train_size = int(TRAIN_RATIO * size)
-    validate_size = int(VALIDATE_RATIO * size)
-    test_size = int(TEST_RATIO * size)
+    dataframe = dataframe.sample(frac=1, random_state=SHUFFLE_SEED)
 
     sources = dataframe["source"].unique()
 
+    # TODO: this could be much better
     # split dataset using an equal amount of data from each source
     train, validate, test = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
     for source in sources:
-        train.append(dataframe.loc[dataframe["source"] == source].iloc[:train_size])
-        validate.append(dataframe.loc[dataframe["source"] == source].iloc[train_size:validate_size])
-        test.append(dataframe.loc[dataframe["source"] == source].iloc[validate_size:test_size])
+        subset = dataframe.loc[dataframe["source"] == source].reset_index()
+        train_end = int(TRAIN_RATIO * len(subset))
+        validate_end = int(VALIDATE_RATIO * len(subset)) + train_end
+        # test_end = int(TEST_RATIO * subset.size) + validate_end
+
+        train = pd.concat([train, subset.iloc[:train_end]])
+        validate = pd.concat([validate, subset.iloc[train_end:validate_end]])
+        test = pd.concat([test, subset.iloc[validate_end:]])
 
     return train, validate, test
-    
+
 
 # takes in pandas dataframe and relevant fields, outputs tensorflow dataset
 def preprocess_dataframe(yamnet_model, dataframe, class_to_id):

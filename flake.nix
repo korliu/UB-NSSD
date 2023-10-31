@@ -105,6 +105,7 @@
           tensorflow
           ipython
           soundfile
+          scikit-learn
         ]);
     };
   };
