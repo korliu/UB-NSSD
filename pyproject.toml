@@ -21,11 +21,7 @@ dependencies = [
   'tensorflow_io == 0.34.0',
   'ipython == 8.17.1',
   'soundfile == 0.12.1',
-<<<<<<< Updated upstream
-  'natsort == 8.4.0',
-=======
   'scikit-learn == 1.3.2',
->>>>>>> Stashed changes
 ]
 
 [tool.pyright]
