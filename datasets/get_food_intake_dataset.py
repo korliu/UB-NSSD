@@ -2,8 +2,6 @@ import os
 import shutil
 import csv
 import numpy as np
-import random
-from natsort import os_sorted
 import soundfile as sf
 import json
 from pathlib import Path
