@@ -1,3 +1,4 @@
+import pandas as pd
 import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_io as tfio
@@ -36,6 +37,27 @@ def load_yamnet():
     return hub.load("https://tfhub.dev/google/yamnet/1")
 
 
+def split_dataframe(dataframe):
+    # shuffle dataframe
+    dataframe = dataframe.sample(frac=1,random_state=SHUFFLE_SEED)
+
+    size = dataframe.size
+    train_size = int(TRAIN_RATIO * size)
+    validate_size = int(VALIDATE_RATIO * size)
+    test_size = int(TEST_RATIO * size)
+
+    sources = dataframe["source"].unique()
+
+    # split dataset using an equal amount of data from each source
+    train, validate, test = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+    for source in sources:
+        train.append(dataframe.loc[dataframe["source"] == source].iloc[:train_size])
+        validate.append(dataframe.loc[dataframe["source"] == source].iloc[train_size:validate_size])
+        test.append(dataframe.loc[dataframe["source"] == source].iloc[validate_size:test_size])
+
+    return train, validate, test
+    
+
 # takes in pandas dataframe and relevant fields, outputs tensorflow dataset
 def preprocess_dataframe(yamnet_model, dataframe, class_to_id):
     # map classes to their ids
@@ -53,39 +75,13 @@ def preprocess_dataframe(yamnet_model, dataframe, class_to_id):
         lambda audio_data, variant: extract_embedding(yamnet_model, audio_data, variant)
     ).unbatch()
     # cache, batch, and prefetch dataset
-    dataset = dataset.cache().batch(BATCH_SIZE)
+    dataset = dataset.cache().batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
     return dataset
 
 
-def split_dataframe(dataframe, size):
-    return split_dataset(
-        # TODO: keep other columns as well
-        tf.data.Dataset.from_tensor_slices((dataframe["path"], dataframe["variant"])),
-        size,
-    )
-
-
-# takes a tensorflow dataset and splits it into a train/test/validate dataset
-def split_dataset(dataset, size):
-    train_size = int(TRAIN_RATIO * size)
-    validate_size = int(VALIDATE_RATIO * size)
-    test_size = int(TEST_RATIO * size)
-
-    # TODO: need to evenly distrbute classes among splits
-    dataset.shuffle(size, seed=SHUFFLE_SEED)
-    train = dataset.take(train_size).shuffle(train_size).prefetch(tf.data.AUTOTUNE)
-    validate = dataset.skip(train_size).take(validate_size).prefetch(tf.data.AUTOTUNE)
-    test = (
-        dataset.skip(train_size + validate_size)
-        .take(test_size)
-        .prefetch(tf.data.AUTOTUNE)
-    )
-    return train, validate, test
-
-
 def train(train, validate, num_classes):
-    # TODO: add input layers based on extra fields
+    # TODO: add input layers for extra fields
     model = tf.keras.Sequential(
         [
             # embeddings
