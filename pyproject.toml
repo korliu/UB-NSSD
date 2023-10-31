@@ -21,6 +21,7 @@ dependencies = [
   'tensorflow_io == 0.34.0',
   'ipython == 8.17.1',
   'soundfile == 0.12.1',
+  'natsort == 8.4.0',
 ]
 
 [tool.pyright]
