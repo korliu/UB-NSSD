@@ -13,8 +13,16 @@ datasets/google_audioset/audioset
 !datasets/foods_data.csv
 # TODO: temporary
 !datasets/to16bit.py 
+
+# scripts 
 !datasets/get_eating_sound_data.py
 !datasets/get_food_intake_dataset.py
+
+# csv data
+!datasets/manual_data.csv
+!datasets/all_data.csv
+!datasets/foods_data.csv
+!datasets/food_intake_data.csv
 
 meeting_notes/*
 
