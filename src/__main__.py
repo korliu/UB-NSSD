@@ -4,6 +4,7 @@ import pandas as pd
 import result
 import tensorflow as tf
 import train
+from matplotlib import pyplot as plt
 from sklearn.metrics import RocCurveDisplay
 
 DATASET_PATH = "datasets/all_data.csv"
@@ -24,7 +25,9 @@ if args.train:
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     classes = list(class_to_id.keys())
 
-    dataframe_no_food_intake = dataframe.loc[dataframe["source"] != "food_intake_dataset"] 
+    dataframe_no_food_intake = dataframe.loc[
+        dataframe["source"] != "food_intake_dataset"
+    ]
     train_split, validate_split, _ = train.split_dataframe(dataframe_no_food_intake)
     tf_train_split = train.preprocess_dataframe(yamnet_model, train_split, class_to_id)
     tf_validate_split = train.preprocess_dataframe(
@@ -53,6 +56,8 @@ if args.test:
     model = tf.keras.models.load_model(MODEL_PATH)
     model.summary()
 
+    # dataframe = dataframe.loc[dataframe["source"] != "food_intake_dataset"]
+
     test = result.predict(dataframe, model)
     y_true, y_pred = test["variant"], test["predicted"]
 
@@ -60,8 +65,11 @@ if args.test:
     y_true = y_true.map(lambda x: class_to_id[x]).values
     y_pred = y_pred.map(lambda x: class_to_id[x]).values
 
-    # display = RocCurveDisplay.from_predictions(y_true, y_pred)
-    # display.plot()
+    correct = [int(a == b) for a, b in zip(y_true, y_pred)]
+
+    display = RocCurveDisplay.from_predictions(correct, test["predicted_score"].values)
+    display.plot()
+    plt.show()
 
     auc = tf.keras.metrics.AUC()
     auc.update_state(y_true, y_pred)
