@@ -6,6 +6,7 @@ import tensorflow as tf
 import train
 from matplotlib import pyplot as plt
 from sklearn.metrics import RocCurveDisplay
+import sklearn.metrics as sk_metrics
 
 DATASET_PATH = "datasets/all_data.csv"
 MODEL_PATH = "nssd_model"
@@ -89,6 +90,11 @@ if args.test:
     # f1.update_state(y_true, y_pred)
     # f1.result().numpy()
     # print(f"F1: {f1.result().numpy()}")
+
+    confusion_matrices = sk_metrics.multilabel_confusion_matrix(y_true,y_pred)
+    for i in zip(class_to_id.keys(), confusion_matrices):
+        print(f"{i[0]} -> Confusion Matrix: {i[1]}")
+
 
     test.to_csv(RESULT_PATH)
 
