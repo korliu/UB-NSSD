@@ -94,6 +94,9 @@ def metrics(dataframe, model_name):
 
 def main(args):
     if args.train:
+        if not os.path.exists(MODEL_DIR):
+            os.mkdir(MODEL_DIR)
+
         yamnet_model = training.load_yamnet()
 
         dataframes = dataframe_versions(
@@ -108,6 +111,9 @@ def main(args):
             )
 
     if args.test:
+        if not os.path.exists(RESULT_DIR):
+            os.mkdir(RESULT_DIR)
+
         dataframes = dataframe_versions(
             yamnet_model,
         )
@@ -119,10 +125,5 @@ parser = argparse.ArgumentParser(description="UB-NSSD YAMNet transfer learning m
 parser.add_argument("--train", action="store_true", help="Whether to train the model")
 parser.add_argument("--test", action="store_true", help="Whether to test the model")
 args = parser.parse_args()
-
-ensure_exists = [MODEL_DIR, RESULT_DIR]
-for path in ensure_exists:
-    if not os.path.exists(path):
-        os.mkdir(path)
 
 main(args)
