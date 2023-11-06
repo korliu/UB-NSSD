@@ -1,74 +1,55 @@
 import argparse
+import os
 
 import pandas as pd
 import result
-import tensorflow as tf
-import train
-from matplotlib import pyplot as plt
-from sklearn.metrics import RocCurveDisplay
 import sklearn.metrics as sk_metrics
+import tensorflow as tf
+import training
+from matplotlib import pyplot as plt
+from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
 
 DATASET_PATH = "datasets/all_data.csv"
-MODEL_PATH = "nssd_model"
-MODEL_WITH_INTAKE_PATH = "nssd_intake_model"
-RESULT_PATH = "outputs/yamnet_analysis.csv"
-RESULT_WITH_INTAKE_PATH = "outputs/yamnet_food_intake_analysis.csv"
+MODEL_DIR = "models"
+RESULT_DIR = "outputs"
 
-parser = argparse.ArgumentParser(description="UB-NSSD YAMNet transfer learning model")
-parser.add_argument("--train", action="store_true", help="Whether to train the model")
-parser.add_argument("--test", action="store_true", help="Whether to test the model")
-args = parser.parse_args()
 
-if args.train:
-    yamnet_model = train.load_yamnet()
-
+# returns a list of dataframes to create models for
+def dataframe_versions():
     dataframe = pd.read_csv(DATASET_PATH)
+    return {
+        "all": dataframe,
+        "no_intake": dataframe.loc[dataframe["source"] != "food_intake_dataset"],
+    }
+
+
+def train(yamnet_model, dataframe):
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     classes = list(class_to_id.keys())
 
     dataframe_no_food_intake = dataframe.loc[
         dataframe["source"] != "food_intake_dataset"
     ]
-    train_split, validate_split, _ = train.split_dataframe(dataframe_no_food_intake)
-    tf_train_split = train.preprocess_dataframe(yamnet_model, train_split, class_to_id)
-    tf_validate_split = train.preprocess_dataframe(
+    train_split, validate_split, _ = training.split_dataframe(dataframe_no_food_intake)
+    tf_train_split = training.preprocess_dataframe(
+        yamnet_model, train_split, class_to_id
+    )
+    tf_validate_split = training.preprocess_dataframe(
         yamnet_model, validate_split, class_to_id
     )
 
-    model = train.train(tf_train_split, tf_validate_split, len(classes))
-    train.save_simple(yamnet_model, model, MODEL_PATH)
-
-    # TODO: remove boilerplate
-
-    train_split, validate_split, _ = train.split_dataframe(dataframe)
-    tf_train_split = train.preprocess_dataframe(yamnet_model, train_split, class_to_id)
-    tf_validate_split = train.preprocess_dataframe(
-        yamnet_model, validate_split, class_to_id
-    )
-
-    model = train.train(tf_train_split, tf_validate_split, len(classes))
-    train.save_simple(yamnet_model, model, MODEL_WITH_INTAKE_PATH)
+    return training.train(tf_train_split, tf_validate_split, len(classes))
 
 
-if args.test:
-    dataframe = pd.read_csv(DATASET_PATH)
-
-    # model = tf.saved_model.load(MODEL_PATH)
-    model = tf.keras.models.load_model(MODEL_PATH)
-    model.summary()
-
-    # dataframe = dataframe.loc[dataframe["source"] != "food_intake_dataset"]
-
-    test = result.predict(dataframe, model)
-    y_true, y_pred = test["variant"], test["predicted"]
-
-    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+def visualize_metrics(class_to_id, results):
+    y_true, y_pred = results["variant"], results["predicted"]
     y_true = y_true.map(lambda x: class_to_id[x]).values
     y_pred = y_pred.map(lambda x: class_to_id[x]).values
 
     correct = [int(a == b) for a, b in zip(y_true, y_pred)]
-
-    display = RocCurveDisplay.from_predictions(correct, test["predicted_score"].values)
+    display = RocCurveDisplay.from_predictions(
+        correct, results["predicted_score"].values
+    )
     display.plot()
     plt.show()
 
@@ -91,14 +72,57 @@ if args.test:
     # f1.result().numpy()
     # print(f"F1: {f1.result().numpy()}")
 
-    confusion_matrices = sk_metrics.multilabel_confusion_matrix(y_true,y_pred)
+    display = ConfusionMatrixDisplay.from_predictions(y_true, y_pred)
+    display.plot()
+    plt.show()
+
+    confusion_matrices = sk_metrics.multilabel_confusion_matrix(y_true, y_pred)
     for i in zip(class_to_id.keys(), confusion_matrices):
         print(f"{i[0]} -> Confusion Matrix: {i[1]}")
 
 
-    test.to_csv(RESULT_PATH)
+def metrics(dataframe, model_name):
+    model = tf.keras.models.load_model(os.path.join(MODEL_DIR, model_name))
+    model.summary()
 
-    # TODO: show metrics
-    model = tf.keras.models.load_model(MODEL_WITH_INTAKE_PATH)
-    test = result.predict(dataframe, model)
-    test.to_csv(RESULT_WITH_INTAKE_PATH)
+    results = result.predict(dataframe, model)
+    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+
+    visualize_metrics(class_to_id, results)
+    results.to_csv(os.path.join(RESULT_DIR, model_name))
+
+
+def main(args):
+    if args.train:
+        yamnet_model = training.load_yamnet()
+
+        dataframes = dataframe_versions(
+            yamnet_model,
+        )
+        for name, dataframe in dataframes.items():
+            model = train(yamnet_model, dataframe)
+            model.save_simple(
+                yamnet_model,
+                model,
+                os.path.join(MODEL_DIR, name),
+            )
+
+    if args.test:
+        dataframes = dataframe_versions(
+            yamnet_model,
+        )
+        for name, dataframe in dataframes.items():
+            metrics(dataframe, name)
+
+
+parser = argparse.ArgumentParser(description="UB-NSSD YAMNet transfer learning model")
+parser.add_argument("--train", action="store_true", help="Whether to train the model")
+parser.add_argument("--test", action="store_true", help="Whether to test the model")
+args = parser.parse_args()
+
+ensure_exists = [MODEL_DIR, RESULT_DIR]
+for path in ensure_exists:
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+main(args)
