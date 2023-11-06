@@ -37,26 +37,46 @@ def load_yamnet():
     return hub.load("https://tfhub.dev/google/yamnet/1")
 
 
+def split_dataframe_field(dataframe, field: str, splits: list[float]):
+    variants = dataframe[field].unique()
+
+    subdataframes = []
+    for _ in splits:
+        subdataframes.append(pd.DataFrame())
+
+    for variant in variants:
+        subset = dataframe.loc[dataframe[field] == variant].reset_index()
+        start = 0
+        for i, ratio in enumerate(splits):
+            end = int(ratio * len(subset))
+            subdataframes[i] = pd.concat([subdataframes[i], subset.iloc[start:end]])
+            start += end
+
+    return subdataframes
+
+
+# splits dataframe into train, validate, test evenly based on source and variant
 def split_dataframe(dataframe):
     # shuffle dataframe
     dataframe = dataframe.sample(frac=1, random_state=SHUFFLE_SEED)
 
-    sources = dataframe["source"].unique()
+    splits = []
+    for _ in range(3):
+        splits.append(pd.DataFrame())
 
-    # TODO: this could be much better
-    # split dataset using an equal amount of data from each source
-    train, validate, test = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-    for source in sources:
-        subset = dataframe.loc[dataframe["source"] == source].reset_index()
-        train_end = int(TRAIN_RATIO * len(subset))
-        validate_end = int(VALIDATE_RATIO * len(subset)) + train_end
-        # test_end = int(TEST_RATIO * subset.size) + validate_end
+    # split evenly by source
+    source_distributed = split_dataframe_field(
+        dataframe, "source", [TRAIN_RATIO, VALIDATE_RATIO, TEST_RATIO]
+    )
+    for i, subdataframe in enumerate(source_distributed):
+        # split evenly by variant
+        variant_distributed = split_dataframe_field(
+            subdataframe, "variant", [TRAIN_RATIO, VALIDATE_RATIO, TEST_RATIO]
+        )
+        # combine all splits so it's evenly distributed based on source and variant
+        splits[i] = pd.concat([splits[i], variant_distributed])
 
-        train = pd.concat([train, subset.iloc[:train_end]])
-        validate = pd.concat([validate, subset.iloc[train_end:validate_end]])
-        test = pd.concat([test, subset.iloc[validate_end:]])
-
-    return train, validate, test
+    return splits
 
 
 # takes in pandas dataframe and relevant fields, outputs tensorflow dataset
