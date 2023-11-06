@@ -19,7 +19,11 @@ def dataframe_versions():
     dataframe = pd.read_csv(DATASET_PATH)
     return {
         "all": dataframe,
-        "no_intake": dataframe.loc[dataframe["source"] != "food_intake_dataset"],
+        "only_intake": dataframe.loc[dataframe["source"] == "food_intake_dataset"],
+        "only_manual": dataframe.loc[
+            dataframe["source"] == "youtube_video"
+            or dataframe["source"] == "eating_sound_collection"
+        ],
     }
 
 
