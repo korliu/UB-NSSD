@@ -14,6 +14,9 @@ datasets/google_audioset/audioset
 # TODO: temporary
 !datasets/to16bit.py 
 
+models
+images
+
 # scripts 
 !datasets/get_eating_sound_data.py
 !datasets/get_food_intake_dataset.py

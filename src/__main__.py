@@ -24,6 +24,7 @@ def sample_dataframe(dataframe):
     return RandomUnderSampler(
         sampling_strategy="not minority", random_state=1
     ).fit_resample(dataframe, dataframe["variant"])[0]
+    return dataframe
 
 
 # returns a list of dataframes to create models for
@@ -36,6 +37,9 @@ def dataframe_versions():
         "only_intake": sample_dataframe(
             dataframe.loc[dataframe["source"] == "food_intake_dataset"]
         ),
+        "only_intake_no_sample": dataframe.loc[
+            dataframe["source"] == "food_intake_dataset"
+        ],
         "only_manual": sample_dataframe(
             dataframe.loc[
                 (dataframe["source"] == "youtube_video")
@@ -97,10 +101,11 @@ def visualize_metrics(class_to_id, results, title):
 
 
 def dataframe_summary(dataframe: pd.DataFrame):
-
     df = dataframe.copy()
 
-    df["duration_sec"] = df["path"].apply(lambda path: utils.get_audio_duration(audio_path=path))
+    df["duration_sec"] = df["path"].apply(
+        lambda path: utils.get_audio_duration(audio_path=path)
+    )
 
     return {
         "value_counts": df["variant"].value_counts().to_dict(),

@@ -15,21 +15,19 @@ from pathlib import Path
 from sklearn.metrics import auc, roc_curve
 from itertools import cycle
 
-image_folder = Path("src","images")
+image_folder = Path("images")
 image_folder.mkdir(exist_ok=True)
 
 
 def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
+    print(f"true vs. pred:", y_true, y_pred, sep="\n")
 
-    print(f"true vs. pred:", y_true, y_pred,sep="\n")
-
-    id_to_class = {int(v): k for k,v in class_to_id.items()}
+    id_to_class = {int(v): k for k, v in class_to_id.items()}
     n_classes = len(class_to_id)
 
-    y_true = [id_to_class[class_id] for class_id in y_true ]
-    y_pred = [id_to_class[class_id] for class_id in y_pred ]
+    y_true = [id_to_class[class_id] for class_id in y_true]
+    y_pred = [id_to_class[class_id] for class_id in y_pred]
 
-    
     # print(y_true, y_pred)
 
     target_values = [id_to_class[i] for i in range(3)]
@@ -39,13 +37,12 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
     y_onehot = label_binarizer.transform(y_true)
     # print(y_onehot_test)
     # print(y_onehot_test.shape)  # (n_samples, n_classes)
-    
 
     y_target = y_onehot
 
     scores = [f"{variant}_score" for variant in target_values]
     y_scores = results[scores].to_numpy()
-    y_scores2 = results[["biting_score","chewing_score","swallow_score"]].to_numpy()
+    y_scores2 = results[["biting_score", "chewing_score", "swallow_score"]].to_numpy()
 
     for i in zip(y_scores[:5], y_scores2[:5]):
         print(i)
@@ -78,7 +75,6 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
 
     # print(f"Macro-averaged One-vs-Rest ROC AUC score:\n{roc_auc['macro']:.2f}")
 
-
     fig, ax = plt.subplots(figsize=(6, 6))
 
     plt.plot(
@@ -98,7 +94,6 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
         linewidth=4,
     )
 
-
     colors = cycle(["aqua", "darkorange", "cornflowerblue"])
     for class_id, color in zip(range(n_classes), colors):
         RocCurveDisplay.from_predictions(
@@ -115,11 +110,10 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
     plt.ylabel("True Positive Rate")
     plt.title(f"One-vs-Rest multiclass ROC for {title}")
     plt.legend()
-    plt.savefig(Path(image_folder,f"{title}_multi_ovr_roc.png"))
+    plt.savefig(Path(image_folder, f"{title}_multi_ovr_roc.png"))
 
 
-def confusion_matrix(class_to_id,y_true,y_pred, results, title=""):
-
+def confusion_matrix(class_to_id, y_true, y_pred, results, title=""):
     display = ConfusionMatrixDisplay.from_predictions(y_true, y_pred)
     display.plot()
 
@@ -127,6 +121,5 @@ def confusion_matrix(class_to_id,y_true,y_pred, results, title=""):
     # for i in zip(class_to_id.keys(), confusion_matrices):
     #     print(f"{i[0]} -> Confusion Matrix: {i[1]}")
 
-
     plt.title(f"Confusion Matrix for {title}")
-    plt.savefig(Path(image_folder,f"{title}_confusion_matrix.png"))
+    plt.savefig(Path(image_folder, f"{title}_confusion_matrix.png"))
