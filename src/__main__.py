@@ -1,15 +1,16 @@
 import argparse
 import os
 
-import pandas as pd
 import result
-import sklearn.metrics as sk_metrics
-import tensorflow as tf
 import training
 import visualize
-from imblearn.under_sampling import RandomUnderSampler
+import utils
+
 from matplotlib import pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
+import pandas as pd
+import sklearn.metrics as sk_metrics
+import tensorflow as tf
+from imblearn.under_sampling import RandomUnderSampler
 
 DATASET_PATH = "datasets/all_data.csv"
 MODEL_DIR = "models"
@@ -95,10 +96,17 @@ def visualize_metrics(class_to_id, results, title):
     visualize.confusion_matrix(class_to_id, y_true, y_pred, results, title)
 
 
-def dataframe_summary(dataframe):
+def dataframe_summary(dataframe: pd.DataFrame):
+
+    df = dataframe.copy()
+
+    df["duration_sec"] = df["path"].apply(lambda path: utils.get_audio_duration(audio_path=path))
+
     return {
-        "value_counts": dataframe["variant"].value_counts(),
-        "average_length": None,  # TODO
+        "value_counts": df["variant"].value_counts(),
+        "average_length": df["duration_sec"].mean(),  # TODO
+        "median_length": df["duration_sec"].median(),
+        "stats": df["duration_sec"].describe().to_dict(),
     }
 
 
