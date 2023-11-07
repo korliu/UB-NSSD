@@ -25,7 +25,7 @@ Non-Sound Speech Detection (NSSD) Team for University at Buffalo Voice.
 ### Nix Flake
 1. `nix develop`
 > [!NOTE]
-> Python packages in the flake are not pinned, so there may be version incompatabilities in the future. Please refer to the `pyproject.toml` for supported dependency versions.
+> Python packages in the flake are not pinned (however, the flake itself is), so there may be version incompatabilities in the future. Please refer to the `pyproject.toml` for supported dependency versions.
 
 
 ## Resources

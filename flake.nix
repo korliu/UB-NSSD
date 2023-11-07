@@ -111,6 +111,7 @@
           ipython
           soundfile
           scikit-learn
+          imbalanced-learn
         ]);
     };
   };
