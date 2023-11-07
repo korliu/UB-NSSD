@@ -6,10 +6,10 @@ import result
 import sklearn.metrics as sk_metrics
 import tensorflow as tf
 import training
+import visualize
 from imblearn.under_sampling import RandomUnderSampler
 from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
-import visualize
 
 DATASET_PATH = "datasets/all_data.csv"
 MODEL_DIR = "models"
@@ -45,7 +45,6 @@ def dataframe_versions():
 
 
 def train(yamnet_model, dataframe):
-
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     classes = list(class_to_id.keys())
 
@@ -72,8 +71,7 @@ def visualize_metrics(class_to_id, results, title):
     # )
     # display.plot()
 
-    visualize.ROC_curve(class_to_id,y_true,y_pred,results,title)
-
+    visualize.ROC_curve(class_to_id, y_true, y_pred, results, title)
 
     auc = tf.keras.metrics.AUC()
     auc.update_state(y_true, y_pred)
@@ -94,8 +92,7 @@ def visualize_metrics(class_to_id, results, title):
     # f1.result().numpy()
     # print(f"F1: {f1.result().numpy()}")
 
-    visualize.confusion_matrix(class_to_id,y_true,y_pred,results,title)
-
+    visualize.confusion_matrix(class_to_id, y_true, y_pred, results, title)
 
 
 def dataframe_summary(dataframe):
@@ -120,15 +117,11 @@ def metrics(dataframe, model_name):
     for name, summary in summaries.items():
         print(f"{name} Summary", summary)
 
-    results = result.predict(
-        test_split,
-        model,
-        dataframe["variant"].unique(),
-    )
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
-
+    results = result.predict(test_split, model, class_to_id)
     visualize_metrics(class_to_id, results, model_name)
-    results.to_csv(os.path.join(RESULT_DIR, model_name))
+
+    results.to_csv(os.path.join(RESULT_DIR, model_name + ".csv"))
 
 
 def main(args):

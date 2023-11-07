@@ -2,8 +2,7 @@ import tensorflow as tf
 import training
 
 
-def predict(dataframe, model, classes):
-    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+def predict(dataframe, model, class_to_id):
     classes = list(class_to_id.keys())
 
     dataset = tf.data.Dataset.from_tensor_slices((dataframe["path"]))
