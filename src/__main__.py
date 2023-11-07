@@ -119,7 +119,7 @@ def metrics(dataframe, model_name):
 
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     results = result.predict(test_split, model, class_to_id)
-    visualize_metrics(class_to_id, results)
+    visualize_metrics(class_to_id, results, model_name)
 
     results.to_csv(os.path.join(RESULT_DIR, model_name + ".csv"))
 
