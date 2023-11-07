@@ -19,6 +19,11 @@
     };
   in {
     devShells.${system}.default = pkgs.mkShell {
+      nativeBuildInputs = with pkgs; [
+        ruff-lsp # linting + formatting
+        nodePackages_latest.pyright # LSP
+      ];
+
       buildInputs = with pkgs; let
         tensorflow-hub = python311Packages.buildPythonPackage rec {
           pname = "tensorflow_hub";

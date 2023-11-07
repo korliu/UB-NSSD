@@ -32,5 +32,3 @@ fixable = ["ALL"]
 extend-select = ["I"]
 # select = ["ALL"]
 # ignore = ["ERA001"]
-
-# [tool.black]
