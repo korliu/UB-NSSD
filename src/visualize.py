@@ -124,8 +124,8 @@ def confusion_matrix(class_to_id,y_true,y_pred, results, title=""):
     display.plot()
 
     confusion_matrices = sk_metrics.multilabel_confusion_matrix(y_true, y_pred)
-    for i in zip(class_to_id.keys(), confusion_matrices):
-        print(f"{i[0]} -> Confusion Matrix: {i[1]}")
+    # for i in zip(class_to_id.keys(), confusion_matrices):
+    #     print(f"{i[0]} -> Confusion Matrix: {i[1]}")
 
 
     plt.title(f"Confusion Matrix for {title}")

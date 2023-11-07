@@ -103,10 +103,10 @@ def dataframe_summary(dataframe: pd.DataFrame):
     df["duration_sec"] = df["path"].apply(lambda path: utils.get_audio_duration(audio_path=path))
 
     return {
-        "value_counts": df["variant"].value_counts(),
+        "value_counts": df["variant"].value_counts().to_dict(),
         "average_length": df["duration_sec"].mean(),  # TODO
         "median_length": df["duration_sec"].median(),
-        "stats": df["duration_sec"].describe().to_dict(),
+        # "stats": df["duration_sec"].describe().to_dict(),
     }
 
 
@@ -123,7 +123,7 @@ def metrics(dataframe, model_name):
         "test": dataframe_summary(test_split),
     }
     for name, summary in summaries.items():
-        print(f"{name} Summary", summary)
+        print(f"{name} Summary for {model_name}", summary)
 
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     results = result.predict(test_split, model, class_to_id)
