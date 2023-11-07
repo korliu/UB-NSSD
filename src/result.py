@@ -3,6 +3,28 @@ import tensorflow as tf
 import training
 
 
+def predict_split(dataframe, model, classes):
+    dataset = tf.data.Dataset.from_tensor_slices((dataframe["path"]))
+    dataset = dataset.map(lambda path: training.load_wav_16k_mono(path))
+
+    predictions = model.predict(dataset)
+    chunk_size = len(classes)
+
+    print(len(predictions) / chunk_size, len(dataframe))
+
+    for start in range(0, len(predictions), chunk_size):
+        prediction = predictions[start : (start + chunk_size)]
+
+        top_class = tf.math.argmax(prediction)
+        class_probabilities = tf.nn.softmax(prediction, axis=-1)
+
+        i = start / chunk_size
+        dataframe.at[i, "predicted"] = classes[top_class]
+        dataframe.at[i, "predicted_score"] = class_probabilities[top_class].numpy()
+
+    return dataframe
+
+
 def predict(dataframe, model):
     _, _, test = training.split_dataframe(dataframe)
     return predict_split(
@@ -10,18 +32,3 @@ def predict(dataframe, model):
         model,
         dataframe["variant"].unique(),
     )
-
-
-# mutates the passed dataframe with the `predicted` and `predicted_score` columns
-def predict_split(dataframe, model, classes):
-    # TODO: convert to tensorflow dataset and process much more efficiently
-    for i, row in dataframe.iterrows():
-        waveform = training.load_wav_16k_mono(row["path"])
-        results = model(waveform)
-        top_class = tf.math.argmax(results)
-        class_probabilities = tf.nn.softmax(results, axis=-1)
-
-        dataframe.at[i, "predicted"] = classes[top_class]
-        dataframe.at[i, "predicted_score"] = class_probabilities[top_class].numpy()
-
-    return dataframe

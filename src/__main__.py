@@ -17,6 +17,7 @@ RESULT_DIR = "outputs"
 # returns a list of dataframes to create models for
 def dataframe_versions():
     dataframe = pd.read_csv(DATASET_PATH)
+    dataframe = dataframe.loc[dataframe["variant"] != "other"]
     return {
         "all": dataframe,
         "only_intake": dataframe.loc[dataframe["source"] == "food_intake_dataset"],

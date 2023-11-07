@@ -51,7 +51,6 @@ def split_dataframe_field(dataframe, field: str, splits: list[float]):
         for i, ratio in enumerate(splits):
             subset_size = int(ratio * len(subset))
             end = start + subset_size
-            print(start, end)
 
             subdataframes[i] = pd.concat([subdataframes[i], subset.iloc[start:end]])
             start += subset_size
