@@ -16,6 +16,7 @@ datasets/google_audioset/audioset
 
 models
 images
+outputs
 
 # scripts 
 !datasets/get_eating_sound_data.py
