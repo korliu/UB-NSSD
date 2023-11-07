@@ -20,7 +20,7 @@ Non-Sound Speech Detection (NSSD) Team for University at Buffalo Voice.
 4. `pip install .` to install dependencies
 5. `deactivate` to leave virtual environment
 > [!IMPORTANT]
-> As of 10/30/2023, the latest versions of `tensorflow` do not ship with Windows builds. You must manually compile it, try an older version, or use a different OS.
+> As of 10/30/2023, the latest versions of `tensorflow_io` do not ship with Windows builds. You must manually compile it, try an older version, or use a different OS.
 
 ### Nix Flake
 1. `nix develop`
