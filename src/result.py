@@ -3,6 +3,9 @@ import training
 
 
 def predict(dataframe, model, classes):
+    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+    classes = list(class_to_id.keys())
+
     dataset = tf.data.Dataset.from_tensor_slices((dataframe["path"]))
     dataset = dataset.map(lambda path: training.load_wav_16k_mono(path))
 
@@ -17,6 +20,8 @@ def predict(dataframe, model, classes):
 
         i = start / chunk_size
         dataframe.at[i, "predicted"] = classes[top_class]
-        dataframe.at[i, "predicted_score"] = class_probabilities[top_class].numpy()
+
+        for id in range(len(prediction)):
+            dataframe.at[i, f"{classes[id]}_score"] = class_probabilities[id].numpy()
 
     return dataframe
