@@ -21,8 +21,8 @@ def dataframe_versions():
         "all": dataframe,
         "only_intake": dataframe.loc[dataframe["source"] == "food_intake_dataset"],
         "only_manual": dataframe.loc[
-            dataframe["source"] == "youtube_video"
-            or dataframe["source"] == "eating_sound_collection"
+            (dataframe["source"] == "youtube_video")
+            | (dataframe["source"] == "eating_sound_collection")
         ],
     }
 
@@ -31,10 +31,7 @@ def train(yamnet_model, dataframe):
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     classes = list(class_to_id.keys())
 
-    dataframe_no_food_intake = dataframe.loc[
-        dataframe["source"] != "food_intake_dataset"
-    ]
-    train_split, validate_split, _ = training.split_dataframe(dataframe_no_food_intake)
+    train_split, validate_split, _ = training.split_dataframe(dataframe)
     tf_train_split = training.preprocess_dataframe(
         yamnet_model, train_split, class_to_id
     )
@@ -103,12 +100,10 @@ def main(args):
 
         yamnet_model = training.load_yamnet()
 
-        dataframes = dataframe_versions(
-            yamnet_model,
-        )
+        dataframes = dataframe_versions()
         for name, dataframe in dataframes.items():
             model = train(yamnet_model, dataframe)
-            model.save_simple(
+            training.save_simple(
                 yamnet_model,
                 model,
                 os.path.join(MODEL_DIR, name),
@@ -118,9 +113,7 @@ def main(args):
         if not os.path.exists(RESULT_DIR):
             os.mkdir(RESULT_DIR)
 
-        dataframes = dataframe_versions(
-            yamnet_model,
-        )
+        dataframes = dataframe_versions()
         for name, dataframe in dataframes.items():
             metrics(dataframe, name)
 
