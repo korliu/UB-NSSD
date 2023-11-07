@@ -87,7 +87,12 @@ def metrics(dataframe, model_name):
     model = tf.keras.models.load_model(os.path.join(MODEL_DIR, model_name))
     model.summary()
 
-    results = result.predict(dataframe, model)
+    _, _, test_split = training.split_dataframe(dataframe)
+    results = result.predict(
+        test_split,
+        model,
+        dataframe["variant"].unique(),
+    )
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
 
     visualize_metrics(class_to_id, results)

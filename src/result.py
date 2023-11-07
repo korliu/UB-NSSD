@@ -3,7 +3,7 @@ import tensorflow as tf
 import training
 
 
-def predict_split(dataframe, model, classes):
+def predict(dataframe, model, classes):
     dataset = tf.data.Dataset.from_tensor_slices((dataframe["path"]))
     dataset = dataset.map(lambda path: training.load_wav_16k_mono(path))
 
@@ -21,12 +21,3 @@ def predict_split(dataframe, model, classes):
         dataframe.at[i, "predicted_score"] = class_probabilities[top_class].numpy()
 
     return dataframe
-
-
-def predict(dataframe, model):
-    _, _, test = training.split_dataframe(dataframe)
-    return predict_split(
-        test,
-        model,
-        dataframe["variant"].unique(),
-    )
