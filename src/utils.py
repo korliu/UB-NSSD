@@ -147,3 +147,9 @@ def get_audio_from_yt(
     output_dict["audio_tensor"] = (audio_waveform, audio_sr)
 
     return output_dict
+
+def get_audio_duration(audio_path: str) -> float:
+
+    duration = librosa.get_duration(path=audio_path)
+
+    return float(duration)
