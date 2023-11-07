@@ -55,6 +55,6 @@ for food_sound in os.scandir(DATASET):
 
         to_path = shutil.copy(src=audio_path,dst=output_path)
 
-        csv_row = new_row(to_path,"________",food_name,"na","________")
+        csv_row = new_row(to_path,"________",food_name,"na","________","eating_sound_collection")
 
         csv_writer.writerow(csv_row)
