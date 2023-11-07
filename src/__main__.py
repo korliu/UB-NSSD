@@ -9,6 +9,7 @@ import training
 from imblearn.under_sampling import RandomUnderSampler
 from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
+import visualize
 
 DATASET_PATH = "datasets/all_data.csv"
 MODEL_DIR = "models"
@@ -44,6 +45,10 @@ def dataframe_versions():
 
 
 def train(yamnet_model, dataframe):
+
+    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+    classes = list(class_to_id.keys())
+
     train_split, validate_split, _ = training.split_dataframe(dataframe)
     tf_train_split = training.preprocess_dataframe(
         yamnet_model, train_split, class_to_id
@@ -55,7 +60,7 @@ def train(yamnet_model, dataframe):
     return training.train(tf_train_split, tf_validate_split, len(classes))
 
 
-def visualize_metrics(class_to_id, results):
+def visualize_metrics(class_to_id, results, title):
     y_true, y_pred = results["variant"], results["predicted"]
     y_true = y_true.map(lambda x: class_to_id[x]).values
     y_pred = y_pred.map(lambda x: class_to_id[x]).values
@@ -66,6 +71,9 @@ def visualize_metrics(class_to_id, results):
     # correct, results["predicted_score"].values
     # )
     # display.plot()
+
+    visualize.ROC_curve(class_to_id,y_true,y_pred,results,title)
+
 
     auc = tf.keras.metrics.AUC()
     auc.update_state(y_true, y_pred)
@@ -86,14 +94,8 @@ def visualize_metrics(class_to_id, results):
     # f1.result().numpy()
     # print(f"F1: {f1.result().numpy()}")
 
-    display = ConfusionMatrixDisplay.from_predictions(y_true, y_pred)
-    display.plot()
+    visualize.confusion_matrix(class_to_id,y_true,y_pred,results,title)
 
-    confusion_matrices = sk_metrics.multilabel_confusion_matrix(y_true, y_pred)
-    for i in zip(class_to_id.keys(), confusion_matrices):
-        print(f"{i[0]} -> Confusion Matrix: {i[1]}")
-
-    plt.show()
 
 
 def dataframe_summary(dataframe):
@@ -125,7 +127,7 @@ def metrics(dataframe, model_name):
     )
     class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
 
-    visualize_metrics(class_to_id, results)
+    visualize_metrics(class_to_id, results, model_name)
     results.to_csv(os.path.join(RESULT_DIR, model_name))
 
 
