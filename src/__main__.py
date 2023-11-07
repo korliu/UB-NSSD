@@ -44,9 +44,6 @@ def dataframe_versions():
 
 
 def train(yamnet_model, dataframe):
-    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
-    classes = list(class_to_id.keys())
-
     train_split, validate_split, _ = training.split_dataframe(dataframe)
     tf_train_split = training.preprocess_dataframe(
         yamnet_model, train_split, class_to_id
@@ -99,11 +96,28 @@ def visualize_metrics(class_to_id, results):
     plt.show()
 
 
+def dataframe_summary(dataframe):
+    return {
+        "value_counts": dataframe["variant"].value_counts(),
+        "average_length": None,  # TODO
+    }
+
+
 def metrics(dataframe, model_name):
     model = tf.keras.models.load_model(os.path.join(MODEL_DIR, model_name))
     model.summary()
 
-    _, _, test_split = training.split_dataframe(dataframe)
+    train_split, validate_split, test_split = training.split_dataframe(dataframe)
+
+    # TODO: make into dataframe and output to csv
+    summaries = {
+        "train": dataframe_summary(train_split),
+        "validate": dataframe_summary(validate_split),
+        "test": dataframe_summary(test_split),
+    }
+    for name, summary in summaries.items():
+        print(f"{name} Summary", summary)
+
     results = result.predict(
         test_split,
         model,
