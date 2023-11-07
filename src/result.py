@@ -10,8 +10,6 @@ def predict_split(dataframe, model, classes):
     predictions = model.predict(dataset)
     chunk_size = len(classes)
 
-    print(len(predictions) / chunk_size, len(dataframe))
-
     for start in range(0, len(predictions), chunk_size):
         prediction = predictions[start : (start + chunk_size)]
 
