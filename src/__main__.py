@@ -6,6 +6,7 @@ import result
 import sklearn.metrics as sk_metrics
 import tensorflow as tf
 import training
+from imblearn.under_sampling import RandomUnderSampler
 from matplotlib import pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
 
@@ -13,18 +14,32 @@ DATASET_PATH = "datasets/all_data.csv"
 MODEL_DIR = "models"
 RESULT_DIR = "outputs"
 
+BALANCE_MARGIN = 0.1  # 10%
+
+
+# TODO: lots of options for over/undersampling, should check them out
+def sample_dataframe(dataframe):
+    return RandomUnderSampler(
+        sampling_strategy="not minority", random_state=1
+    ).fit_resample(dataframe, dataframe["variant"])[0]
+
 
 # returns a list of dataframes to create models for
 def dataframe_versions():
     dataframe = pd.read_csv(DATASET_PATH)
     dataframe = dataframe.loc[dataframe["variant"] != "other"]
+
     return {
-        "all": dataframe,
-        "only_intake": dataframe.loc[dataframe["source"] == "food_intake_dataset"],
-        "only_manual": dataframe.loc[
-            (dataframe["source"] == "youtube_video")
-            | (dataframe["source"] == "eating_sound_collection")
-        ],
+        "all": sample_dataframe(dataframe),
+        "only_intake": sample_dataframe(
+            dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        ),
+        "only_manual": sample_dataframe(
+            dataframe.loc[
+                (dataframe["source"] == "youtube_video")
+                | (dataframe["source"] == "eating_sound_collection")
+            ]
+        ),
     }
 
 
@@ -48,12 +63,12 @@ def visualize_metrics(class_to_id, results):
     y_true = y_true.map(lambda x: class_to_id[x]).values
     y_pred = y_pred.map(lambda x: class_to_id[x]).values
 
-    correct = [int(a == b) for a, b in zip(y_true, y_pred)]
-    display = RocCurveDisplay.from_predictions(
-        correct, results["predicted_score"].values
-    )
-    display.plot()
-    plt.show()
+    # TODO: don't believe it's using the right data
+    # correct = [int(a == b) for a, b in zip(y_true, y_pred)]
+    # display = RocCurveDisplay.from_predictions(
+    # correct, results["predicted_score"].values
+    # )
+    # display.plot()
 
     auc = tf.keras.metrics.AUC()
     auc.update_state(y_true, y_pred)
@@ -76,11 +91,12 @@ def visualize_metrics(class_to_id, results):
 
     display = ConfusionMatrixDisplay.from_predictions(y_true, y_pred)
     display.plot()
-    plt.show()
 
     confusion_matrices = sk_metrics.multilabel_confusion_matrix(y_true, y_pred)
     for i in zip(class_to_id.keys(), confusion_matrices):
         print(f"{i[0]} -> Confusion Matrix: {i[1]}")
+
+    plt.show()
 
 
 def metrics(dataframe, model_name):
