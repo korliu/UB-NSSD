@@ -4,7 +4,7 @@ import os
 import subprocess
 import math
 import librosa
-
+import csv
 
 def get_yt_url(yt_id: str, start_sec: float = None, end_sec: float = None) -> str:
     """
@@ -153,3 +153,20 @@ def get_audio_duration(audio_path: str) -> float:
     duration = librosa.get_duration(path=audio_path)
 
     return float(duration)
+
+
+def c2i(classes_file_csv):
+
+    class2id = {}
+
+    with open(classes_file_csv, 'r') as f:
+
+        csv_reader = csv.reader(f)
+
+        headers = next(csv_reader)
+
+        for i, k in enumerate(csv_reader):
+            class2id[k[0]] = i
+
+
+    return class2id

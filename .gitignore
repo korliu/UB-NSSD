@@ -13,6 +13,9 @@ datasets/google_audioset/audioset
 !datasets/foods_data.csv
 # TODO: temporary
 !datasets/to16bit.py 
+!datasets/classes.csv
+
+src/playground*.py
 
 models
 images

@@ -5,19 +5,22 @@ import result
 import training
 import visualize
 import utils
-
 from matplotlib import pyplot as plt
 import pandas as pd
 import sklearn.metrics as sk_metrics
 import tensorflow as tf
 from imblearn.under_sampling import RandomUnderSampler
+from pathlib import Path
 
 DATASET_PATH = "datasets/all_data.csv"
 MODEL_DIR = "models"
 RESULT_DIR = "outputs"
 
+CLASSES_FILE = Path("datasets","classes.csv")
+
 BALANCE_MARGIN = 0.1  # 10%
 
+class_to_id = utils.c2i(CLASSES_FILE)
 
 # TODO: lots of options for over/undersampling, should check them out
 def sample_dataframe(dataframe):
@@ -49,8 +52,8 @@ def dataframe_versions():
     }
 
 
-def train(yamnet_model, dataframe):
-    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+def train(yamnet_model, dataframe, class_to_id):
+    # class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     classes = list(class_to_id.keys())
 
     train_split, validate_split, _ = training.split_dataframe(dataframe)
@@ -75,6 +78,7 @@ def visualize_metrics(class_to_id, results, title):
     # correct, results["predicted_score"].values
     # )
     # display.plot()
+    
 
     visualize.ROC_curve(class_to_id, y_true, y_pred, results, title)
 
@@ -115,7 +119,7 @@ def dataframe_summary(dataframe: pd.DataFrame):
     }
 
 
-def metrics(dataframe, model_name):
+def metrics(dataframe, model_name, class_to_id):
     model = tf.keras.models.load_model(os.path.join(MODEL_DIR, model_name))
     model.summary()
 
@@ -130,7 +134,7 @@ def metrics(dataframe, model_name):
     for name, summary in summaries.items():
         print(f"{name} Summary for {model_name}", summary)
 
-    class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
+    # class_to_id = {k: i for i, k in enumerate(dataframe["variant"].unique())}
     results = result.predict(test_split, model, class_to_id)
     visualize_metrics(class_to_id, results, model_name)
 
@@ -146,7 +150,7 @@ def main(args):
 
         dataframes = dataframe_versions()
         for name, dataframe in dataframes.items():
-            model = train(yamnet_model, dataframe)
+            model = train(yamnet_model, dataframe, class_to_id)
             training.save_simple(
                 yamnet_model,
                 model,
@@ -159,7 +163,7 @@ def main(args):
 
         dataframes = dataframe_versions()
         for name, dataframe in dataframes.items():
-            metrics(dataframe, name)
+            metrics(dataframe, name, class_to_id)
 
 
 parser = argparse.ArgumentParser(description="UB-NSSD YAMNet transfer learning model")

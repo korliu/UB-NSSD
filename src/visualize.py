@@ -21,6 +21,7 @@ image_folder.mkdir(exist_ok=True)
 
 def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
     print(f"true vs. pred:", y_true, y_pred, sep="\n")
+    print(class_to_id)
 
     id_to_class = {int(v): k for k, v in class_to_id.items()}
     n_classes = len(class_to_id)
