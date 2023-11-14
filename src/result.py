@@ -2,9 +2,7 @@ import tensorflow as tf
 import training
 
 
-def predict(dataframe, model, class_to_id):
-    classes = list(class_to_id.keys())
-
+def predict(dataframe, model, classes):
     dataset = tf.data.Dataset.from_tensor_slices((dataframe["path"]))
     dataset = dataset.map(lambda path: training.load_wav_16k_mono(path))
 
