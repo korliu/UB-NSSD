@@ -8,6 +8,7 @@ import training
 import utils
 import visualize
 from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler
 
 DATASET_PATH = "datasets/all_data.csv"
 MODEL_DIR = "models"
@@ -17,9 +18,16 @@ BALANCE_MARGIN = 0.1  # 10%
 
 
 # TODO: lots of options for over/undersampling, should check them out
-def sample_dataframe(dataframe):
-    return RandomUnderSampler(
+def undersample_dataframe(dataframe):
+    return RandomOverSampler(
         sampling_strategy="not minority", random_state=1
+    ).fit_resample(dataframe, dataframe["variant"])[0]
+    return dataframe
+
+
+def oversample_dataframe(dataframe):
+    return RandomOverSampler(
+        sampling_strategy="not majority", random_state=1
     ).fit_resample(dataframe, dataframe["variant"])[0]
     return dataframe
 
@@ -30,14 +38,11 @@ def dataframe_versions():
     dataframe = dataframe.loc[dataframe["variant"] != "other"]
 
     return {
-        "all": sample_dataframe(dataframe),
-        "only_intake": sample_dataframe(
+        "all": undersample_dataframe(dataframe),
+        "only_intake": undersample_dataframe(
             dataframe.loc[dataframe["source"] == "food_intake_dataset"]
         ),
-        "only_intake_no_sample": dataframe.loc[
-            dataframe["source"] == "food_intake_dataset"
-        ],
-        "only_manual": sample_dataframe(
+        "only_manual": undersample_dataframe(
             dataframe.loc[
                 (dataframe["source"] == "youtube_video")
                 | (dataframe["source"] == "eating_sound_collection")
