@@ -7,8 +7,8 @@ import tensorflow as tf
 import training
 import utils
 import visualize
-from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
 
 DATASET_PATH = "datasets/all_data.csv"
 MODEL_DIR = "models"
@@ -19,7 +19,7 @@ BALANCE_MARGIN = 0.1  # 10%
 
 # TODO: lots of options for over/undersampling, should check them out
 def undersample_dataframe(dataframe):
-    return RandomOverSampler(
+    return RandomUnderSampler(
         sampling_strategy="not minority", random_state=1
     ).fit_resample(dataframe, dataframe["variant"])[0]
     return dataframe
@@ -38,11 +38,31 @@ def dataframe_versions():
     dataframe = dataframe.loc[dataframe["variant"] != "other"]
 
     return {
-        "all": undersample_dataframe(dataframe),
-        "only_intake": undersample_dataframe(
+        "all": oversample_dataframe(dataframe),
+        "only": oversample_dataframe(
             dataframe.loc[dataframe["source"] == "food_intake_dataset"]
         ),
-        "only_manual": undersample_dataframe(
+        "only_manual": oversample_dataframe(
+            dataframe.loc[
+                (dataframe["source"] == "youtube_video")
+                | (dataframe["source"] == "eating_sound_collection")
+            ]
+        ),
+        "all_oversampled": oversample_dataframe(dataframe),
+        "only_intake_oversampled": oversample_dataframe(
+            dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        ),
+        "only_manual_oversampled": oversample_dataframe(
+            dataframe.loc[
+                (dataframe["source"] == "youtube_video")
+                | (dataframe["source"] == "eating_sound_collection")
+            ]
+        ),
+        "all_undersampled": undersample_dataframe(dataframe),
+        "only_intake_undersampled": undersample_dataframe(
+            dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        ),
+        "only_manual_undersampled": undersample_dataframe(
             dataframe.loc[
                 (dataframe["source"] == "youtube_video")
                 | (dataframe["source"] == "eating_sound_collection")
