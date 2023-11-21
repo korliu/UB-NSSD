@@ -1,8 +1,10 @@
 import argparse
 import os
 
+import imblearn
 import pandas as pd
 import result
+import sklearn
 import tensorflow as tf
 import training
 import utils
@@ -22,14 +24,41 @@ def undersample_dataframe(dataframe):
     return RandomUnderSampler(
         sampling_strategy="not minority", random_state=1
     ).fit_resample(dataframe, dataframe["variant"])[0]
-    return dataframe
 
 
 def oversample_dataframe(dataframe):
     return RandomOverSampler(
         sampling_strategy="not majority", random_state=1
     ).fit_resample(dataframe, dataframe["variant"])[0]
-    return dataframe
+
+
+def encode_dataframe(dataframe):
+    encoders = {}
+    for column in dataframe.columns:
+        encoder = sklearn.preprocessing.LabelEncoder()
+        encoders[column] = encoder
+
+        encoder.fit(dataframe[column])
+        dataframe[column] = encoder.transform(dataframe[column])
+
+    return encoders
+
+
+def decode_dataframe(dataframe, encoders):
+    for column in dataframe.columns:
+        dataframe[column] = encoders[column].inverse_transform(dataframe[column])
+
+
+def sample_dataframe(dataframe, algorithm):
+    print(dataframe_summary(dataframe))
+
+    encoders = encode_dataframe(dataframe)
+    new = algorithm.fit_resample(dataframe, dataframe["variant"])[0]
+    decode_dataframe(new, encoders)
+
+    print(dataframe_summary(new))
+
+    return new
 
 
 # returns a list of dataframes to create models for
@@ -37,38 +66,106 @@ def dataframe_versions():
     dataframe = pd.read_csv(DATASET_PATH)
     dataframe = dataframe.loc[dataframe["variant"] != "other"]
 
-    return {
-        "all": oversample_dataframe(dataframe),
-        "only": oversample_dataframe(
-            dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+    algorithms = {
+        "RandomOverSampler,": imblearn.over_sampling.RandomOverSampler(
+            sampling_strategy="auto", random_state=1
         ),
-        "only_manual": oversample_dataframe(
-            dataframe.loc[
-                (dataframe["source"] == "youtube_video")
-                | (dataframe["source"] == "eating_sound_collection")
-            ]
+        "SMOTE,": imblearn.over_sampling.SMOTE(
+            sampling_strategy="auto", random_state=1
         ),
-        "all_oversampled": oversample_dataframe(dataframe),
-        "only_intake_oversampled": oversample_dataframe(
-            dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        # "SMOTENC,": imblearn.over_sampling.SMOTENC(
+        #     categorical_features="auto", sampling_strategy="auto", random_state=1
+        # ),
+        "SMOTEN,": imblearn.over_sampling.SMOTEN(
+            sampling_strategy="auto", random_state=1
         ),
-        "only_manual_oversampled": oversample_dataframe(
-            dataframe.loc[
-                (dataframe["source"] == "youtube_video")
-                | (dataframe["source"] == "eating_sound_collection")
-            ]
+        "ADASYN,": imblearn.over_sampling.ADASYN(
+            sampling_strategy="auto", random_state=1
         ),
-        "all_undersampled": undersample_dataframe(dataframe),
-        "only_intake_undersampled": undersample_dataframe(
-            dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        "BorderlineSMOTE,": imblearn.over_sampling.BorderlineSMOTE(
+            sampling_strategy="auto", random_state=1
         ),
-        "only_manual_undersampled": undersample_dataframe(
-            dataframe.loc[
-                (dataframe["source"] == "youtube_video")
-                | (dataframe["source"] == "eating_sound_collection")
-            ]
+        # "KMeansSMOTE,": imblearn.over_sampling.KMeansSMOTE(
+        #     sampling_strategy="auto", random_state=1
+        # ),
+        "SVMSMOTE,": imblearn.over_sampling.SVMSMOTE(
+            sampling_strategy="auto", random_state=1
+        ),
+        "CondensedNearestNeighbour,": imblearn.under_sampling.CondensedNearestNeighbour(
+            sampling_strategy="auto", random_state=1
+        ),
+        # "EditedNearestNeighbours,": imblearn.under_sampling.EditedNearestNeighbours(
+        #     sampling_strategy="auto",
+        # ),
+        # "RepeatedEditedNearestNeighbours,": imblearn.under_sampling.RepeatedEditedNearestNeighbours(
+        #     sampling_strategy="auto",
+        # ),
+        "AllKNN,": imblearn.under_sampling.AllKNN(
+            sampling_strategy="auto",
+        ),
+        "InstanceHardnessThreshold,": imblearn.under_sampling.InstanceHardnessThreshold(
+            sampling_strategy="auto", random_state=1
+        ),
+        "NearMiss,": imblearn.under_sampling.NearMiss(
+            sampling_strategy="auto",
+        ),
+        # "NeighbourhoodCleaningRule,": imblearn.under_sampling.NeighbourhoodCleaningRule(
+        #     sampling_strategy="auto",
+        # ),
+        "OneSidedSelection,": imblearn.under_sampling.OneSidedSelection(
+            sampling_strategy="auto", random_state=1
+        ),
+        "RandomUnderSampler,": imblearn.under_sampling.RandomUnderSampler(
+            sampling_strategy="auto", random_state=1
+        ),
+        "TomekLinks,": imblearn.under_sampling.TomekLinks(
+            sampling_strategy="auto",
+        ),
+        "SMOTEENN": imblearn.combine.SMOTEENN(sampling_strategy="auto", random_state=1),
+        "SMOTETomek": imblearn.combine.SMOTETomek(
+            sampling_strategy="auto", random_state=1
         ),
     }
+
+    only_intakes = {}
+    for name, algorithm in algorithms.items():
+        print(name)
+        only_intakes["only_intake_" + name] = sample_dataframe(
+            dataframe.loc[dataframe["source"] == "food_intake_dataset"], algorithm
+        )
+
+    return {
+        "all": dataframe,
+        # "only_intake": oversample_dataframe(
+        #     dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        # ),
+        # "only_manual":
+        #     dataframe.loc[
+        #         (dataframe["source"] == "youtube_video")
+        #         | (dataframe["source"] == "eating_sound_collection")
+        #     ]
+        # ,
+        # "all_oversampled": oversample_dataframe(dataframe),
+        # "only_intake_oversampled": oversample_dataframe(
+        #     dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        # ),
+        # "only_manual_oversampled": oversample_dataframe(
+        #     dataframe.loc[
+        #         (dataframe["source"] == "youtube_video")
+        #         | (dataframe["source"] == "eating_sound_collection")
+        #     ]
+        # ),
+        # "all_undersampled": undersample_dataframe(dataframe),
+        # "only_intake_undersampled": undersample_dataframe(
+        #     dataframe.loc[dataframe["source"] == "food_intake_dataset"]
+        # ),
+        # "only_manual_undersampled": undersample_dataframe(
+        #     dataframe.loc[
+        #         (dataframe["source"] == "youtube_video")
+        #         | (dataframe["source"] == "eating_sound_collection")
+        #     ]
+        # ),
+    } | only_intakes
 
 
 def train(yamnet_model, dataframe, class_to_id):
