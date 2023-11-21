@@ -212,6 +212,8 @@ def visualize_metrics(class_to_id, results, title):
     # f1.update_state(y_true, y_pred)
     # f1.result().numpy()
     # print(f"F1: {f1.result().numpy()}")
+    # print(y_true,y_pred)
+    f1_scores = visualize.get_f1_score(class_to_id, y_true, y_pred, title)
 
     visualize.confusion_matrix(class_to_id, y_true, y_pred, results, title)
 
@@ -220,7 +222,7 @@ def dataframe_summary(dataframe: pd.DataFrame):
     df = dataframe.copy()
 
     df["duration_sec"] = df["path"].apply(
-        lambda path: utils.get_audio_duration(audio_path=path)
+         lambda path: utils.get_audio_duration(audio_path=path)
     )
 
     return {

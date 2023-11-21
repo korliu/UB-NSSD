@@ -1,5 +1,7 @@
 import argparse
 import os
+from itertools import cycle
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -8,20 +10,24 @@ import sklearn.metrics as sk_metrics
 import tensorflow as tf
 from imblearn.under_sampling import RandomUnderSampler
 from matplotlib import pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    RocCurveDisplay,
+    auc,
+    f1_score,
+    fbeta_score,
+    roc_auc_score,
+    roc_curve,
+)
 from sklearn.preprocessing import LabelBinarizer
-from pathlib import Path
-from sklearn.metrics import auc, roc_curve
-from itertools import cycle
 
 image_folder = Path("images")
 image_folder.mkdir(exist_ok=True)
 
 
 def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
-    print(f"true vs. pred:", y_true, y_pred, sep="\n")
-    print(class_to_id)
+    # print(f"true vs. pred:", y_true, y_pred, sep="\n")
+    # print(class_to_id)
 
     id_to_class = {int(v): k for k, v in class_to_id.items()}
     n_classes = len(class_to_id)
@@ -32,7 +38,6 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
     # print(y_true, y_pred)
 
     target_values = [id_to_class[i] for i in range(3)]
-    print(target_values)
 
     label_binarizer = LabelBinarizer().fit(target_values)
     y_onehot = label_binarizer.transform(y_true)
@@ -43,10 +48,12 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
 
     scores = [f"{variant}_score" for variant in target_values]
     y_scores = results[scores].to_numpy()
-    y_scores2 = results[["biting_score", "chewing_score", "swallow_score"]].to_numpy()
 
-    for i in zip(y_scores[:5], y_scores2[:5]):
-        print(i)
+    print(results)
+    # print(scores)
+    # print(y_scores)
+    # y_scores2 = results[["biting_score", "chewing_score", "swallow_score"]].to_numpy()
+
 
     # print(list(y_target), y_scores)
 
@@ -86,6 +93,7 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
         linestyle=":",
         linewidth=4,
     )
+    
     plt.plot(
         fpr["macro"],
         tpr["macro"],
@@ -97,6 +105,7 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
 
     colors = cycle(["aqua", "darkorange", "cornflowerblue"])
     for class_id, color in zip(range(n_classes), colors):
+
         RocCurveDisplay.from_predictions(
             y_target[:, class_id],
             y_scores[:, class_id],
@@ -124,3 +133,26 @@ def confusion_matrix(class_to_id, y_true, y_pred, results, title=""):
 
     plt.title(f"Confusion Matrix for {title}")
     plt.savefig(Path(image_folder, f"{title}_confusion_matrix.png"))
+
+
+def get_f1_score(class_to_id, y_true, y_pred, title):
+
+    f1_scores = dict()
+    
+    average_types = ['micro', 'macro', 'weighted']
+
+    for a in average_types:
+        score = f1_score(y_true, y_pred,average=a,pos_label=None)
+        f1_scores[a] = score
+
+
+    f1_score_data = f"F1 Score for {title}: {f1_scores} \n"
+    with open(Path("outputs","f1_scores.txt"), 'a+') as f:
+        f.write(f1_score_data)
+
+    return f1_scores
+
+
+def fbeta_score(class_to_id, y_true, y_pred):
+
+    pass
