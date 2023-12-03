@@ -49,20 +49,20 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
     scores = [f"{variant}_score" for variant in target_values]
     y_scores = results[scores].to_numpy()
 
-    y_test = [x == "chewing" and 1 or 0 for x in y_true]
-    y_pred = results["chewing_score"]
-    RocCurveDisplay.from_predictions(y_test, y_pred)
+    # y_test = [x == "chewing" and 1 or 0 for x in y_true]
+    # y_pred = results["chewing_score"]
+    # RocCurveDisplay.from_predictions(y_test, y_pred)
 
-    y_test = [x == "biting" and 1 or 0 for x in y_true]
-    y_pred = results["biting_score"]
-    RocCurveDisplay.from_predictions(y_test, y_pred)
+    # y_test = [x == "biting" and 1 or 0 for x in y_true]
+    # y_pred = results["biting_score"]
+    # RocCurveDisplay.from_predictions(y_test, y_pred)
 
-    y_test = [x == "swallow" and 1 or 0 for x in y_true]
-    y_pred = results["swallow_score"]
-    RocCurveDisplay.from_predictions(y_test, y_pred)
-    plt.show()
+    # y_test = [x == "swallow" and 1 or 0 for x in y_true]
+    # y_pred = results["swallow_score"]
+    # RocCurveDisplay.from_predictions(y_test, y_pred)
+    # plt.show()
 
-    print("NEXT")
+    # print("NEXT")
 
     print(results)
     # print(scores)
