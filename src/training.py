@@ -1,4 +1,3 @@
-import pandas as pd
 import tensorflow as tf
 import tensorflow_hub as hub
 import tensorflow_io as tfio
@@ -37,41 +36,18 @@ def load_yamnet():
     return hub.load("https://tfhub.dev/google/yamnet/1")
 
 
-def split_dataframe_field(dataframe, field: str, splits: list[float]):
-    variants = dataframe[field].unique()
+def preprocess_dataframes(yamnet_model, class_to_id, dataframes):
+    new_dataframes = []
+    for dataframe in dataframes:
+        new_dataframes.append(
+            preprocess_dataframe(yamnet_model, class_to_id, dataframe)
+        )
 
-    subdataframes = []
-    for _ in splits:
-        subdataframes.append(pd.DataFrame())
-
-    for variant in variants:
-        subset = dataframe.loc[dataframe[field] == variant].reset_index()
-
-        start = 0
-        for i, ratio in enumerate(splits):
-            subset_size = int(ratio * len(subset))
-            end = start + subset_size
-
-            subdataframes[i] = pd.concat([subdataframes[i], subset.iloc[start:end]])
-            start += subset_size
-
-    # make each dataframe start at index 1
-    for i, dataframe in enumerate(subdataframes):
-        subdataframes[i] = dataframe.reset_index()
-
-    return subdataframes
-
-
-# splits dataframe into train, validate, test evenly based on variant
-def split_dataframe(dataframe):
-    dataframe = dataframe.sample(frac=1, random_state=SHUFFLE_SEED)
-    return split_dataframe_field(
-        dataframe, "variant", [TRAIN_RATIO, VALIDATE_RATIO, TEST_RATIO]
-    )
+    return new_dataframes
 
 
 # takes in pandas dataframe and relevant fields, outputs tensorflow dataset
-def preprocess_dataframe(yamnet_model, dataframe, class_to_id):
+def preprocess_dataframe(yamnet_model, class_to_id, dataframe):
     # map classes to their ids
     dataframe["variant"] = dataframe["variant"].map(
         lambda variant: class_to_id[variant]

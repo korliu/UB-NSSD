@@ -49,11 +49,25 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
     scores = [f"{variant}_score" for variant in target_values]
     y_scores = results[scores].to_numpy()
 
+    y_test = [x == "chewing" and 1 or 0 for x in y_true]
+    y_pred = results["chewing_score"]
+    RocCurveDisplay.from_predictions(y_test, y_pred)
+
+    y_test = [x == "biting" and 1 or 0 for x in y_true]
+    y_pred = results["biting_score"]
+    RocCurveDisplay.from_predictions(y_test, y_pred)
+
+    y_test = [x == "swallow" and 1 or 0 for x in y_true]
+    y_pred = results["swallow_score"]
+    RocCurveDisplay.from_predictions(y_test, y_pred)
+    plt.show()
+
+    print("NEXT")
+
     print(results)
     # print(scores)
     # print(y_scores)
     # y_scores2 = results[["biting_score", "chewing_score", "swallow_score"]].to_numpy()
-
 
     # print(list(y_target), y_scores)
 
@@ -93,7 +107,7 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
         linestyle=":",
         linewidth=4,
     )
-    
+
     plt.plot(
         fpr["macro"],
         tpr["macro"],
@@ -105,7 +119,6 @@ def ROC_curve(class_to_id, y_true, y_pred, results, title=""):
 
     colors = cycle(["aqua", "darkorange", "cornflowerblue"])
     for class_id, color in zip(range(n_classes), colors):
-
         RocCurveDisplay.from_predictions(
             y_target[:, class_id],
             y_scores[:, class_id],
@@ -136,23 +149,20 @@ def confusion_matrix(class_to_id, y_true, y_pred, results, title=""):
 
 
 def get_f1_score(class_to_id, y_true, y_pred, title):
-
     f1_scores = dict()
-    
-    average_types = ['micro', 'macro', 'weighted']
+
+    average_types = ["micro", "macro", "weighted"]
 
     for a in average_types:
-        score = f1_score(y_true, y_pred,average=a,pos_label=None)
+        score = f1_score(y_true, y_pred, average=a, pos_label=None)
         f1_scores[a] = score
 
-
     f1_score_data = f"F1 Score for {title}: {f1_scores} \n"
-    with open(Path("outputs","f1_scores.txt"), 'a+') as f:
+    with open(Path("outputs", "f1_scores.txt"), "a+") as f:
         f.write(f1_score_data)
 
     return f1_scores
 
 
 def fbeta_score(class_to_id, y_true, y_pred):
-
     pass
