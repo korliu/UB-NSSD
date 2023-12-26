@@ -162,7 +162,7 @@ def main(args):
             metrics(dataframe, name, class_to_id)
 
 
-parser = argparse.ArgumentParser(description="UB-NSSD YAMNet transfer learning model")
+parser = argparse.ArgumentParser(description="Training UB-NSSD YAMNet transfer learning model")
 parser.add_argument("--train", action="store_true", help="Whether to train the model")
 parser.add_argument("--test", action="store_true", help="Whether to test the model")
 args = parser.parse_args()
