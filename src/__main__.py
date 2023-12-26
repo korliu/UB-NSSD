@@ -54,19 +54,25 @@ def visualize_metrics(class_to_id, results, title):
 
     visualize.ROC_curve(class_to_id, y_true, y_pred, results, title)
 
+    metric_results = dict()
+
     auc = tf.keras.metrics.AUC()
     auc.update_state(y_true, y_pred)
-    print(f"AUC: {auc.result().numpy()}")
+    auc_score = auc.result().numpy()
+    metric_results['auc-score'] = auc_score
+    # print(f"AUC: {auc_score}")
 
     precision = tf.keras.metrics.Precision()
     precision.update_state(y_true, y_pred)
-    precision.result().numpy()
-    print(f"Precision: {precision.result().numpy()}")
+    precision_score = precision.result().numpy()
+    metric_results['precision-score'] = precision_score
+    # print(f"Precision: {precision_score}")
 
     recall = tf.keras.metrics.Recall()
     recall.update_state(y_true, y_pred)
-    recall.result().numpy()
-    print(f"Recall: {recall.result().numpy()}")
+    recall_score = recall.result().numpy()
+    metric_results['recall-score'] = recall_score
+    # print(f"Recall: {recall_score}")
 
     # f1 = tf.keras.metrics.F1Score()
     # f1.update_state(y_true, y_pred)
@@ -75,7 +81,17 @@ def visualize_metrics(class_to_id, results, title):
     # print(y_true,y_pred)
     f1_scores = visualize.get_f1_score(class_to_id, y_true, y_pred, title)
 
+    for f1_type, f1_score in f1_scores.items():
+        metric_results[f"f1-score-{f1_type}"] = f1_score
+
+    
+    visualize.plot_metrics(metric_results, title)
+
+
     visualize.confusion_matrix(class_to_id, y_true, y_pred, results, title)
+
+
+    
 
 
 def dataframe_summary(dataframe: pd.DataFrame):

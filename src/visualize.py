@@ -164,5 +164,14 @@ def get_f1_score(class_to_id, y_true, y_pred, title):
     return f1_scores
 
 
-def fbeta_score(class_to_id, y_true, y_pred):
-    pass
+def plot_metrics(metrics, title):
+
+    _ = plt.figure()
+
+    for metric, score in metrics.items():
+        plt.plot([score] * 5, label=f"{metric} ({'%.2f'% score})")
+
+    plt.legend()
+    plt.ylabel("scores")
+    plt.title(title + " Metric Scores")
+    plt.savefig(Path(image_folder, f"{title}_metric_scores.png"))
