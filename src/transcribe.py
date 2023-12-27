@@ -11,6 +11,26 @@ import visualize
 import keras
 from pathlib import Path
 
+def parse_output(prediction):
+    class_dict = utils.c2i(Path("src","classes.csv"))
+    classes = list(class_dict.keys())
+
+    chunk_size = len(classes)
+    
+    for s in range(0, len(prediction), chunk_size):
+        pred = prediction[s : (s+chunk_size)]
+
+        top_class = tf.math.argmax(pred)
+        class_probabilities = tf.nn.softmax(pred, axis=-1)
+
+        # print(top_class, classes[top_class], class_probabilities)
+
+    class_probabilities = tf.nn.softmax(prediction,axis=-1)
+
+    print(class_probabilities, class_probabilities[0].numpy())
+    pass
+
+
 MODEL_DIR = "models"
 
 STORE = "store"
@@ -32,8 +52,8 @@ parser.add_argument("--size", nargs='?', const=1, type=float, default=0.98,
 parser.add_argument("--step", nargs='?', const=1, type=float, default=0.10,
                     help="Step to move window, in seconds, default=0.10")
 
-parser.add_argument("--save_path", action=STORE,
-                    help="file path to store the graph")
+parser.add_argument("--save_path", action=STORE, 
+                    help="File location to store the prediction graph")
 
 parser.add_argument("--model_version", nargs='?', const=1, default="only_intake",
                     help="Version of the model to transcribe with. \
@@ -41,10 +61,8 @@ parser.add_argument("--model_version", nargs='?', const=1, default="only_intake"
 
 
 args = parser.parse_args()
-print(args)
 
 model_path = Path("models",args.model_version)
-
 model = tf.keras.saving.load_model(model_path)
 
 model.summary()
@@ -53,4 +71,6 @@ model.summary()
 audio = training.load_wav_16k_mono(args.audio_path)
 test = model.predict(audio)
 
-print(test)
+
+print(parse_output(test))
+
