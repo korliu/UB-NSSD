@@ -10,6 +10,7 @@ import utils
 import visualize
 import keras
 from pathlib import Path
+import line_graph
 
 
 def parse_output(prediction):
@@ -125,4 +126,6 @@ for i, segment in enumerate(segments):
 
     data.append({"time": {"start": i * 0.1, "end": i * 0.1 + 0.96}, "tags": tags})
 
+
 print(data)
+line_graph.plot_data(data)
