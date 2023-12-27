@@ -52,6 +52,3 @@ def plot_data(data,graph_name="only_intake"):
 
     plt.show()
     plt.savefig(Path(image_folder,graph_name+"_transcribe_results.png"))
-
-
-plot_data(example_data)
