@@ -40,12 +40,13 @@ def splice_food_intake():
         
         max_samples = 5
 
-        # random.seed(42)
+        random.seed(42)
         random.shuffle(intake_audios)
         
         splice_index = 0
         audio_index = 0
         while audio_index < len(intake_audios):
+            np.random.seed(42+splice_index)
             n_audios = np.random.choice(np.arange(2,max_samples+1))
 
             start = audio_index
@@ -119,12 +120,13 @@ def splice_manual_intake():
         
         max_samples = 5
 
-        # random.seed(42)
+        random.seed(42)
         random.shuffle(manual_audios)
         
         splice_index = 0
         audio_index = 0
         while audio_index < len(manual_audios):
+            np.random.seed(42+splice_index)
             n_audios = np.random.choice(np.arange(2,max_samples+1))
 
             start = audio_index
@@ -158,8 +160,6 @@ def splice_manual_intake():
             csv_writer.writerow(csv_data)
 
             audio_index += n_audios
-
-random.seed(42)
 
 splice_food_intake()
 splice_manual_intake()
