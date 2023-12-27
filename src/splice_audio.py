@@ -40,7 +40,7 @@ def splice_food_intake():
         
         max_samples = 5
 
-        random.seed(42)
+        # random.seed(42)
         random.shuffle(intake_audios)
         
         splice_index = 0
@@ -60,6 +60,11 @@ def splice_food_intake():
                 audio_wav, sr = librosa.load(clip_path)
 
                 spliced_audio.append(audio_wav)
+
+                silence_secs = random.random()
+                silence_wav = np.zeros(int(silence_secs*sr))
+                spliced_audio.append(silence_wav)
+
                 sounds_in_order.append(clip_sound)
 
 
@@ -114,7 +119,7 @@ def splice_manual_intake():
         
         max_samples = 5
 
-        random.seed(42)
+        # random.seed(42)
         random.shuffle(manual_audios)
         
         splice_index = 0
@@ -134,6 +139,11 @@ def splice_manual_intake():
                 audio_wav, sr = librosa.load(clip_path)
 
                 spliced_audio.append(audio_wav)
+
+                silence_secs = random.random()
+                silence_wav = np.zeros(int(silence_secs*sr))
+                spliced_audio.append(silence_wav)
+
                 sounds_in_order.append(clip_sound)
 
 
@@ -148,6 +158,8 @@ def splice_manual_intake():
             csv_writer.writerow(csv_data)
 
             audio_index += n_audios
+
+random.seed(42)
 
 splice_food_intake()
 splice_manual_intake()
