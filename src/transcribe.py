@@ -106,13 +106,23 @@ def split_audio_segments(wav, segment_duration=0.96, overlap=0):
     return segments
 
 
+class_dict = utils.c2i(Path("src", "classes.csv"))
+classes = list(class_dict.keys())
+
+data = []
+
 audio = training.load_wav_16k_mono(args.audio_path)
 segments = split_audio_segments(audio)
-for segment in segments[0:1]:
+for i, segment in enumerate(segments):
     # if the segment size is 0.96s this should only have 3 elements
     prediction = model(segment)
-    print(prediction)
 
-    top_class = tf.math.argmax(prediction)
     class_probabilities = tf.nn.softmax(prediction, axis=-1)
-    print(top_class, class_probabilities)
+
+    tags = []
+    for j, probability in enumerate(class_probabilities):
+        tags.append((classes[j], float(probability)))
+
+    data.append({"time": {"start": i * 0.1, "end": i * 0.1 + 0.96}, "tags": tags})
+
+print(data)
