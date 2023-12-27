@@ -89,7 +89,7 @@ model = tf.keras.saving.load_model(model_path)
 model.summary()
 
 
-def split_audio_segments(wav, segment_duration=0.96, overlap=0):
+def split_audio_segments(wav, segment_duration=0.96, overlap=0.86):
     segment_samples = int(segment_duration * 16000)
     overlap_samples = int(overlap * 16000)
 
