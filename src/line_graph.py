@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pathlib as Path
+from pathlib import Path
 
 # example input
 # data = [
@@ -51,4 +51,7 @@ def plot_data(data,graph_name="only_intake"):
     plt.title("Time vs Probability")
 
     plt.show()
-    plt.savefig(Path(image_folder),graph_name+"_transcribe_results.png")
+    plt.savefig(Path(image_folder,graph_name+"_transcribe_results.png"))
+
+
+plot_data(example_data)
