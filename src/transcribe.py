@@ -108,9 +108,11 @@ def split_audio_segments(wav, segment_duration=0.96, overlap=0):
 
 audio = training.load_wav_16k_mono(args.audio_path)
 segments = split_audio_segments(audio)
-for segment in segments:
+for segment in segments[0:1]:
     # if the segment size is 0.96s this should only have 3 elements
-    prediction = model.predict(segment)
+    prediction = model(segment)
+    print(prediction)
 
     top_class = tf.math.argmax(prediction)
     class_probabilities = tf.nn.softmax(prediction, axis=-1)
+    print(top_class, class_probabilities)
