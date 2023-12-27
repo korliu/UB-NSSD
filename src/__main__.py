@@ -1,5 +1,6 @@
 import argparse
 import os
+from pathlib import Path
 
 import pandas as pd
 import preprocess
@@ -59,19 +60,19 @@ def visualize_metrics(class_to_id, results, title):
     auc = tf.keras.metrics.AUC()
     auc.update_state(y_true, y_pred)
     auc_score = auc.result().numpy()
-    metric_results['auc-score'] = auc_score
+    metric_results["auc-score"] = auc_score
     # print(f"AUC: {auc_score}")
 
     precision = tf.keras.metrics.Precision()
     precision.update_state(y_true, y_pred)
     precision_score = precision.result().numpy()
-    metric_results['precision-score'] = precision_score
+    metric_results["precision-score"] = precision_score
     # print(f"Precision: {precision_score}")
 
     recall = tf.keras.metrics.Recall()
     recall.update_state(y_true, y_pred)
     recall_score = recall.result().numpy()
-    metric_results['recall-score'] = recall_score
+    metric_results["recall-score"] = recall_score
     # print(f"Recall: {recall_score}")
 
     # f1 = tf.keras.metrics.F1Score()
@@ -84,14 +85,9 @@ def visualize_metrics(class_to_id, results, title):
     for f1_type, f1_score in f1_scores.items():
         metric_results[f"f1-score-{f1_type}"] = f1_score
 
-    
     visualize.plot_metrics(metric_results, title)
 
-
     visualize.confusion_matrix(class_to_id, y_true, y_pred, results, title)
-
-
-    
 
 
 def dataframe_summary(dataframe: pd.DataFrame):
@@ -161,10 +157,62 @@ def main(args):
         for name, dataframe in dataframes.items():
             metrics(dataframe, name, class_to_id)
 
+    # TODO: refine
+    if args.path:
+        model = tf.keras.saving.load_model(Path("models", args.model))
+        model.summary()
 
-parser = argparse.ArgumentParser(description="Training UB-NSSD YAMNet transfer learning model")
+        dataframe = pd.DataFrame(
+            columns=["path", "variant", "food", "sex", "other_labels", "source"],
+            data=[
+                [args.path, args.variant, "_food", "_sex", "_other_labels", "manual"],
+            ],
+        )
+        print(dataframe)
+
+        dataframes = dataframe_versions()
+        class_to_id = {
+            k: i for i, k in enumerate(dataframes["all"]["variant"].unique())
+        }
+
+        classes = list(class_to_id.keys())
+        results = result.predict(dataframe, model, classes)
+        visualize_metrics(class_to_id, results, "manual_single")
+
+
+parser = argparse.ArgumentParser(
+    description="Training UB-NSSD YAMNet transfer learning model"
+)
 parser.add_argument("--train", action="store_true", help="Whether to train the model")
 parser.add_argument("--test", action="store_true", help="Whether to test the model")
+
+parser.add_argument("path", help="Audio file to transcribe")
+parser.add_argument(
+    "--size",
+    nargs="?",
+    const=1,
+    type=float,
+    default=0.98,
+    help="Size of prediction window, in seconds, default=0.98",
+)
+parser.add_argument(
+    "--step",
+    nargs="?",
+    const=1,
+    type=float,
+    default=0.10,
+    help="Step to move window, in seconds, default=0.10",
+)
+parser.add_argument(
+    "--model",
+    nargs="?",
+    const=1,
+    default="only_intake",
+    help="Version of the model to transcribe with. \
+                        [only_intake, all], default=only_intake",
+)
+parser.add_argument("--variant", type=str, help="Type of audio event")
+
 args = parser.parse_args()
 
 main(args)
