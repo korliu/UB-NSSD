@@ -33,17 +33,17 @@ for i in range(100):
 
 def plot_data(data,graph_name="only_intake"):
 
-    x1, x2, x3 = [], [], []
-    y = []
+    times = []
+    biting_probs, chewing_probs, swallow_probs  = [], [], []
     for segment in data:
-        x1.append(segment["tags"][0][1])
-        x2.append(segment["tags"][1][1])
-        x3.append(segment["tags"][2][1])
-        y.append(segment["time"]["start"])
+        biting_probs.append(segment["tags"][0][1])
+        chewing_probs.append(segment["tags"][1][1])
+        swallow_probs.append(segment["tags"][2][1])
+        times.append(segment["time"]["start"])
 
-    plt.plot(y, x1, label="biting")
-    plt.plot(y, x2, label="chewing")
-    plt.plot(y, x3, label="swallow")
+    plt.plot(times, biting_probs, label="biting")
+    plt.plot(times, chewing_probs, label="chewing")
+    plt.plot(times, swallow_probs, label="swallow")
 
     plt.legend()
     plt.xlabel("Time")
